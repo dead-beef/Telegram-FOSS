@@ -2302,7 +2302,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             imageBackgroundColor = 0;
             imageBackgroundSideColor = 0;
             mediaBackground = false;
-            photoImage.setAlpha(1.0f);
+            photoImage.setAlpha(currentMessageObject.isBlocked() ? 0.0f : 1.0f);
             if (messageChanged || dataChanged) {
                 pollButtons.clear();
             }
@@ -2403,7 +2403,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                                 imageBackgroundColor = Integer.parseInt(bgColor, 16) | 0xff000000;
                                 imageBackgroundSideColor = AndroidUtilities.getPatternSideColor(imageBackgroundColor);
                                 photoImage.setColorFilter(new PorterDuffColorFilter(AndroidUtilities.getPatternColor(imageBackgroundColor), PorterDuff.Mode.SRC_IN));
-                                photoImage.setAlpha(intensity / 100.0f);
+                                photoImage.setAlpha(currentMessageObject.isBlocked() ? 0.0f : intensity / 100.0f);
                             } else {
                                 String color = url.getLastPathSegment();
                                 if (color != null && color.length() == 6) {
@@ -5413,6 +5413,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     private void drawContent(Canvas canvas) {
+        boolean blocked = currentMessageObject.isBlocked();
+
         if (needNewVisiblePart && currentMessageObject.type == 0) {
             getLocalVisibleRect(scrollRect);
             setVisiblePart(scrollRect.top, scrollRect.bottom - scrollRect.top);
@@ -5446,6 +5448,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
         radialProgress.setProgressColor(Theme.getColor(Theme.key_chat_mediaProgress));
         videoRadialProgress.setProgressColor(Theme.getColor(Theme.key_chat_mediaProgress));
+
+        if (blocked) {
+            return;
+        }
 
         boolean imageDrawn = false;
         if (currentMessageObject.type == 0) {
@@ -7117,7 +7123,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         updateCurrentUserAndChat();
 
         if (isAvatarVisible) {
-            if (currentUser != null) {
+            if (currentUser != null && !messageObject.isBlocked()) {
                 if (currentUser.photo != null) {
                     currentPhoto = currentUser.photo.photo_small;
                 } else {
@@ -7839,6 +7845,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     public void drawNamesLayout(Canvas canvas) {
+        boolean blocked = currentMessageObject.isBlocked();
+        if (blocked) {
+            return;
+        }
+
         if (drawNameLayout && nameLayout != null) {
             canvas.save();
 
@@ -7938,7 +7949,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
         }
 
-        if (replyNameLayout != null) {
+        blocked = currentMessageObject.hasValidReplyMessageObject() && currentMessageObject.replyMessageObject.isBlocked();
+
+        if (!blocked && replyNameLayout != null) {
             if (currentMessageObject.shouldDrawWithoutBackground()) {
                 Theme.chat_replyLinePaint.setColor(Theme.getColor(Theme.key_chat_stickerReplyLine));
                 Theme.chat_replyNamePaint.setColor(Theme.getColor(Theme.key_chat_stickerReplyNameText));
@@ -8050,6 +8063,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     public void drawCaptionLayout(Canvas canvas, boolean selectionOnly) {
+        boolean blocked = currentMessageObject.isBlocked();
+        if (blocked) {
+            return;
+        }
         if (captionLayout == null || selectionOnly && pressedLink == null) {
             return;
         }
@@ -8338,6 +8355,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     public void drawOverlays(Canvas canvas) {
+        boolean blocked = currentMessageObject.isBlocked();
+        if (blocked) {
+            return;
+        }
+
         long newAnimationTime = SystemClock.uptimeMillis();
         long animationDt = newAnimationTime - lastAnimationTime;
         if (animationDt > 17) {

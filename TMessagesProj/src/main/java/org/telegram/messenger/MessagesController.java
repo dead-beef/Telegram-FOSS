@@ -2209,6 +2209,13 @@ public class MessagesController extends BaseController implements NotificationCe
         }
     }
 
+    public boolean isUserBlocked(int user_id) {
+        if (blockedUsers == null) {
+            return false;
+        }
+        return blockedUsers.indexOfKey(user_id) >= 0;
+    }
+
     public void blockUser(int user_id) {
         final TLRPC.User user = getUser(user_id);
         if (user == null || blockedUsers.indexOfKey(user_id) >= 0) {

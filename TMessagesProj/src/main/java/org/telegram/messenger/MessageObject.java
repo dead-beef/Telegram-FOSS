@@ -23,6 +23,7 @@ import android.text.style.URLSpan;
 import android.text.util.Linkify;
 import android.util.Base64;
 import android.util.SparseArray;
+import android.util.SparseIntArray;
 
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.browser.Browser;
@@ -1770,6 +1771,24 @@ public class MessageObject {
             media.results.total_voters = results.total_voters;
             media.results.flags |= 4;
         }
+    }
+
+    public boolean isBlocked() {
+        MessagesController ctrl = MessagesController.getInstance(currentAccount);
+        if (ctrl.isUserBlocked(messageOwner.from_id)) {
+            return true;
+        }
+        if (ctrl.isUserBlocked(getFromId())) {
+            return true;
+        }
+        /*if (messageOwner.fwd_from != null && messageOwner.fwd_from.from_id == 0) {
+            if(messageOwner.fwd_from.from_name != null) {
+                if (ctrl.isUserNameBlocked(messageOwner.fwd_from.from_name)) {
+                    return true;
+                }
+            }
+        }*/
+        return false;
     }
 
     public boolean isPollClosed() {

@@ -739,7 +739,7 @@ public class DialogCell extends BaseCell {
                     if (clearingDialog) {
                         currentMessagePaint = Theme.dialogs_messagePrintingPaint;
                         messageString = LocaleController.getString("HistoryCleared", R.string.HistoryCleared);
-                    } else if (message == null) {
+                    } else if (message == null || message.isBlocked()) {
                         if (encryptedChat != null) {
                             currentMessagePaint = Theme.dialogs_messagePrintingPaint;
                             if (encryptedChat instanceof TLRPC.TL_encryptedChatRequested) {
@@ -918,7 +918,7 @@ public class DialogCell extends BaseCell {
                 timeString = LocaleController.stringForMessageListDate(message.messageOwner.date);
             }
 
-            if (message == null) {
+            if (message == null || message.isBlocked()) {
                 drawCheck1 = false;
                 drawCheck2 = false;
                 drawClock = false;
@@ -2187,7 +2187,7 @@ public class DialogCell extends BaseCell {
             sb.append(LocaleController.formatPluralString("NewMessages", unreadCount));
             sb.append(". ");
         }
-        if (message == null || currentDialogFolderId != 0) {
+        if (message == null || message.isBlocked() || currentDialogFolderId != 0) {
             event.setContentDescription(sb.toString());
             return;
         }
