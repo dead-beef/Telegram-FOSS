@@ -10,6 +10,7 @@ package org.telegram.ui;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.Ringtone;
@@ -22,6 +23,7 @@ import android.util.LongSparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.telegram.messenger.AndroidUtilities;
@@ -118,6 +120,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
     private int resetSection2Row;
     private int resetSectionRow;
     private int resetNotificationsRow;
+    private int resetNotificationsSectionRow;
     private int rowCount = 0;
 
     @Override
@@ -176,6 +179,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
         resetSection2Row = rowCount++;
         resetSectionRow = rowCount++;
         resetNotificationsRow = rowCount++;
+        resetNotificationsSectionRow = rowCount++;
 
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.notificationsSettingsUpdated);
 
@@ -427,8 +431,8 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                 }
             } else if (position == resetNotificationsRow) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                builder.setTitle(LocaleController.getString("ResetNotificationsAlertTitle", R.string.ResetNotificationsAlertTitle));
                 builder.setMessage(LocaleController.getString("ResetNotificationsAlert", R.string.ResetNotificationsAlert));
-                builder.setTitle(LocaleController.getString("AppName", R.string.AppName));
                 builder.setPositiveButton(LocaleController.getString("Reset", R.string.Reset), (dialogInterface, i) -> {
                     if (reseting) {
                         return;
@@ -452,7 +456,12 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                     }));
                 });
                 builder.setNegativeButton(LocaleController.getString("Cancel", R.string.Cancel), null);
-                showDialog(builder.create());
+                AlertDialog alertDialog = builder.create();
+                showDialog(alertDialog);
+                TextView button = (TextView) alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                if (button != null) {
+                    button.setTextColor(Theme.getColor(Theme.key_dialogTextRed2));
+                }
             } else if (position == inappSoundRow) {
                 SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
                 SharedPreferences.Editor editor = preferences.edit();
@@ -534,19 +543,18 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                 NotificationsController.getInstance(currentAccount).updateBadge();
             } else if (position == notificationsServiceConnectionRow) {
                 SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
-                enabled = preferences.getBoolean("pushConnection", true);
+                enabled = preferences.getBoolean("pushConnection", getMessagesController().backgroundConnection);
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putBoolean("pushConnection", !enabled);
-                enabled = preferences.getBoolean("pushService", true);
+                enabled = preferences.getBoolean("pushService", getMessagesController().keepAliveService);
                 editor.putBoolean("pushService", !enabled);
                 editor.commit();
                 if (!enabled) {
                     ConnectionsManager.getInstance(currentAccount).setPushConnectionEnabled(true);
-                    ApplicationLoader.startPushService();
                 } else {
                     ConnectionsManager.getInstance(currentAccount).setPushConnectionEnabled(false);
-                    ApplicationLoader.stopPushService();
                 }
+                ApplicationLoader.startPushService();
             } else if (position == accountsAllRow) {
                 SharedPreferences preferences = MessagesController.getGlobalNotificationsSettings();
                 enabled = preferences.getBoolean("AllAccounts", true);
@@ -722,7 +730,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                     position == eventsSectionRow || position == otherSectionRow || position == resetSectionRow ||
                     position == badgeNumberSection || position == otherSection2Row || position == resetSection2Row ||
                     position == callsSection2Row || position == callsSectionRow || position == badgeNumberSection2Row ||
-                    position == accountsSectionRow || position == accountsInfoRow);
+                    position == accountsSectionRow || position == accountsInfoRow || position == resetNotificationsSectionRow);
         }
 
         @Override
@@ -808,7 +816,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                     } else if (position == androidAutoAlertRow) {
                         checkCell.setTextAndCheck("Android Auto", preferences.getBoolean("EnableAutoNotifications", false), true);
                     } else if (position == notificationsServiceConnectionRow) {
-                        checkCell.setTextAndValueAndCheck(LocaleController.getString("NotificationsServiceConnection", R.string.NotificationsServiceConnection), "You won't be notified of new messages, if you disable this", preferences.getBoolean("pushConnection", true), true, true);
+                        checkCell.setTextAndValueAndCheck(LocaleController.getString("NotificationsServiceConnection", R.string.NotificationsServiceConnection), "You won't be notified of new messages, if you disable this", preferences.getBoolean("pushConnection", getMessagesController().backgroundConnection), true, true);
                     } else if (position == badgeNumberShowRow) {
                         checkCell.setTextAndCheck(LocaleController.getString("BadgeNumberShow", R.string.BadgeNumberShow), NotificationsController.getInstance(currentAccount).showBadgeNumber, true);
                     } else if (position == badgeNumberMutedRow) {
@@ -881,6 +889,14 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                     checkCell.setTextAndValueAndCheck(text, builder, enabled, iconType, position != channelsRow);
                     break;
                 }
+                case 4: {
+                    if (position == resetNotificationsSectionRow) {
+                        holder.itemView.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+                    } else {
+                        holder.itemView.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
+                    }
+                    break;
+                }
                 case 5: {
                     TextSettingsCell textCell = (TextSettingsCell) holder.itemView;
                     SharedPreferences preferences = MessagesController.getNotificationsSettings(currentAccount);
@@ -947,7 +963,8 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
             } else if (position == privateRow || position == groupRow || position == channelsRow) {
                 return 3;
             } else if (position == eventsSection2Row || position == notificationsSection2Row || position == otherSection2Row ||
-                    position == resetSection2Row || position == callsSection2Row || position == badgeNumberSection2Row) {
+                    position == resetSection2Row || position == callsSection2Row || position == badgeNumberSection2Row ||
+                    position == resetNotificationsSectionRow) {
                 return 4;
             } else if (position == accountsInfoRow) {
                 return 6;

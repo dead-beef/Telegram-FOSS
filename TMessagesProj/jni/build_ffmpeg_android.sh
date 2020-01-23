@@ -48,16 +48,17 @@ echo "Configuring..."
 --disable-network \
 --disable-ffplay \
 --disable-ffprobe \
---disable-swscale \
 --disable-postproc \
 --disable-avdevice \
 \
 --enable-runtime-cpudetect \
 --enable-pthreads \
 --enable-avresample \
+--enable-swscale \
 --enable-protocol=file \
 --enable-decoder=h264 \
 --enable-decoder=mpeg4 \
+--enable-decoder=mjpeg \
 --enable-decoder=gif \
 --enable-decoder=alac \
 --enable-demuxer=mov \

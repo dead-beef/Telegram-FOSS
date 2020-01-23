@@ -1,3 +1,25 @@
+### v5.13.1
+- Create themes with color gradients and patterns.
+- Schedule messages to be sent when your recipient comes online.
+- Choose venues more easily when sharing your location.
+- Switch to Night Mode and back directly from the left menu.
+- Get dark maps in Night Mode.
+- Choose video quality in a more intuitive way when sending videos.
+- Try dragging down in user profiles or jumping between messages in a chat to see new animations.
+- Discover 31 other bug fixes and improvements.
+
+#### v5.12.1 (not released as FOSS version)
+- Listen to podcasts and audio tracks longer than 20 minutes at 2x speed.
+- Resume playback from where you left off when watching long videos and listening to long audio tracks.
+- Search for items in the current folder when attaching files or music.
+- Tap and hold on chats when sharing from other apps to send to several recipients.
+- Hold on the Archive folder to mark all archived chats as read.
+
+#### v5.12.0 (not released as FOSS version)
+- Improved search. When searching for messages in a chat, tap on the number of results to view them as a list.
+- Various interface improvements.
+- Better support for Android 10.
+
 ### v5.11.0
 - Hold the 'Send' button to schedule messages in any chat and reminders in 'Saved Messages'.
 - Customize your app's appearance by choosing accent colors for the 'Mono' and 'Dark' themes.

@@ -53,6 +53,7 @@ You can also join `#telegram-foss:matrix.org` via [matrix](https://matrix.to/#/#
 *Removal of non-FOSS, untrustworthy or suspicious binaries or source code and their functionality:*
 - Google Vision face detection and barcode scanning (Passport)
 - Google Wallet and Android Pay integration
+- Google Voice integration
 - HockeyApp crash reporting and self-updates
 - Google SMS retrieval. You have to type the code manually
 
@@ -119,4 +120,3 @@ The project can be built with Android Studio or from the command line with gradl
 # DIGITAL RESISTANCE
 
 ![DIGITALRESISTANCE](/DigitalResistance.jpg?raw=true "DIGITALRESISTANCE")
-

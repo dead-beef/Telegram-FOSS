@@ -73,9 +73,11 @@ function build_one {
 	--enable-runtime-cpudetect \
 	--enable-pthreads \
 	--enable-avresample \
+	--enable-swscale \
 	--enable-protocol=file \
 	--enable-decoder=h264 \
 	--enable-decoder=mpeg4 \
+	--enable-decoder=mjpeg \
 	--enable-decoder=gif \
 	--enable-decoder=alac \
 	--enable-demuxer=mov \

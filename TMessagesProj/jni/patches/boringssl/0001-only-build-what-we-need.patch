@@ -73,7 +73,7 @@ index e940f7d5f..f5221d70d 100644
  
  if(FIPS_DELOCATE)
    SET_SOURCE_FILES_PROPERTIES(fipsmodule/bcm.o PROPERTIES EXTERNAL_OBJECT true)
-@@ -437,78 +437,3 @@ endif()
+@@ -456,78 +456,3 @@ endif()
  if(USE_CUSTOM_LIBCXX)
    target_link_libraries(crypto libcxx)
  endif()
@@ -152,6 +152,5 @@ index e940f7d5f..f5221d70d 100644
 -  target_link_libraries(crypto_test ws2_32)
 -endif()
 -add_dependencies(all_tests crypto_test)
--- 
+--
 2.20.1
-

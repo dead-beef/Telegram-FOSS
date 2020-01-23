@@ -187,7 +187,13 @@ public class ApplicationLoader extends Application {
 
     public static void startPushService() {
         SharedPreferences preferences = MessagesController.getGlobalNotificationsSettings();
-        if (preferences.getBoolean("pushService", true)) {
+        boolean enabled;
+        if (preferences.contains("pushService")) {
+            enabled = preferences.getBoolean("pushService", true);
+        } else {
+            enabled = MessagesController.getMainSettings(UserConfig.selectedAccount).getBoolean("keepAliveService", true);
+        }
+        if (enabled) {
             Log.d("TFOSS", "Trying to start push service every 10 minutes");
             // Telegram-FOSS: unconditionally enable push service
             AlarmManager am = (AlarmManager) applicationContext.getSystemService(Context.ALARM_SERVICE);
@@ -207,18 +213,14 @@ public class ApplicationLoader extends Application {
                 Log.d("TFOSS", "Failed to start push service");
             }
         } else {
-            stopPushService();
-        }
-    }
+            applicationContext.stopService(new Intent(applicationContext, NotificationsService.class));
 
-    public static void stopPushService() {
-        applicationContext.stopService(new Intent(applicationContext, NotificationsService.class));
-
-        PendingIntent pintent = PendingIntent.getService(applicationContext, 0, new Intent(applicationContext, NotificationsService.class), 0);
-        AlarmManager alarm = (AlarmManager)applicationContext.getSystemService(Context.ALARM_SERVICE);
-        alarm.cancel(pintent);
-        if (pendingIntent != null) {
-            alarm.cancel(pendingIntent);
+            PendingIntent pintent = PendingIntent.getService(applicationContext, 0, new Intent(applicationContext, NotificationsService.class), 0);
+            AlarmManager alarm = (AlarmManager)applicationContext.getSystemService(Context.ALARM_SERVICE);
+            alarm.cancel(pintent);
+	        if (pendingIntent != null) {
+	            alarm.cancel(pendingIntent);
+	        }
         }
     }
 
@@ -356,6 +358,29 @@ public class ApplicationLoader extends Application {
             FileLog.e(e);
         }
         return false;
+    }
+
+    public static int getAutodownloadNetworkType() {
+        try {
+            ConnectivityManager connectivityManager = (ConnectivityManager) ApplicationLoader.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo netInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+            if (netInfo != null) {
+                if (netInfo.getState() == NetworkInfo.State.CONNECTED) {
+                    if (connectivityManager.isActiveNetworkMetered()) {
+                        return StatsController.TYPE_MOBILE;
+                    } else {
+                        return StatsController.TYPE_WIFI;
+                    }
+                }
+            }
+            netInfo = connectivityManager.getActiveNetworkInfo();
+            if (netInfo != null && netInfo.isRoaming()) {
+                return StatsController.TYPE_ROAMING;
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return StatsController.TYPE_MOBILE;
     }
 
     public static boolean isConnectedToWiFi() {
