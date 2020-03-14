@@ -2346,10 +2346,10 @@ public class MessagesController extends BaseController implements NotificationCe
     }
 
     public boolean isUserBlocked(int user_id) {
+        if(!(blockedEndReached || loadingBlockedUsers)) {
+            getBlockedUsers(false);
+        }
         if (blockedUsers == null || totalBlockedCount < 0) {
-            if (!loadingBlockedUsers) {
-                getBlockedUsers(false);
-            }
             return false;
         }
         return blockedUsers.indexOfKey(user_id) >= 0;
