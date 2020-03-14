@@ -8,6 +8,7 @@ local.properties
 gradle.properties
 API_KEYS
 *.hprof
+*.bak
 TMessagesProj/.externalNativeBuild/
 TMessagesProj/libs
 TMessagesProj/jni/ffmpeg/android/
