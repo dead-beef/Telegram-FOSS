@@ -259,12 +259,12 @@ android {
                 manifest.srcFile 'config/release/AndroidManifest_SDK23.xml'
             }
             ext {
-                abiVersionCode = 0
+                abiVersionCode = 9
             }
         }
     }
 
-    defaultConfig.versionCode = 1829
+    defaultConfig.versionCode = 1869
 
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
@@ -298,7 +298,7 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 28
-        versionName "5.13.1"
+        versionName "5.15.0"
 
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
         //obtain your own keys at https://core.telegram.org/api/obtaining_api_id

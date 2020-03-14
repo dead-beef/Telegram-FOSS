@@ -19,6 +19,7 @@ import android.text.Spanned;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.TextUtils;
+import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
 import android.util.Base64;
@@ -63,6 +64,8 @@ public class MessageObject {
     public static final int MESSAGE_SEND_STATE_SEND_ERROR = 2;
     public static final int MESSAGE_SEND_STATE_EDITING = 3;
 
+    public static final int TYPE_PHOTO = 1;
+    public static final int TYPE_VIDEO = 3;
     public static final int TYPE_ROUND_VIDEO = 5;
     public static final int TYPE_STICKER = 13;
     public static final int TYPE_ANIMATED_STICKER = 15;
@@ -113,12 +116,15 @@ public class MessageObject {
     public boolean useCustomPhoto;
     public StringBuilder botButtonsLayout;
     public boolean isRestrictedMessage;
+    public long loadedFileSize;
 
     public boolean hadAnimationNotReadyLoading;
 
     public boolean cancelEditing;
 
     public boolean scheduled;
+
+    public ArrayList<TLRPC.TL_pollAnswer> checkedVotes;
 
     public CharSequence editingMessage;
     public ArrayList<TLRPC.MessageEntity> editingMessageEntities;
@@ -1316,7 +1322,12 @@ public class MessageObject {
                 }
             }
         } else if (event.action instanceof TLRPC.TL_channelAdminLogEventActionStopPoll) {
-            messageText = replaceWithLink(LocaleController.getString("EventLogStopPoll", R.string.EventLogStopPoll), "un1", fromUser);
+            TLRPC.Message m = event.action.message;
+            if (m.media instanceof TLRPC.TL_messageMediaPoll && ((TLRPC.TL_messageMediaPoll) m.media).poll.quiz) {
+                messageText = replaceWithLink(LocaleController.getString("EventLogStopQuiz", R.string.EventLogStopQuiz), "un1", fromUser);
+            } else {
+                messageText = replaceWithLink(LocaleController.getString("EventLogStopPoll", R.string.EventLogStopPoll), "un1", fromUser);
+            }
         } else if (event.action instanceof TLRPC.TL_channelAdminLogEventActionToggleSignatures) {
             if (((TLRPC.TL_channelAdminLogEventActionToggleSignatures) event.action).new_value) {
                 messageText = replaceWithLink(LocaleController.getString("EventLogToggledSignaturesOn", R.string.EventLogToggledSignaturesOn), "un1", fromUser);
@@ -1724,7 +1735,11 @@ public class MessageObject {
             } else if (replyMessageObject.messageOwner.media instanceof TLRPC.TL_messageMediaContact) {
                 messageText = replaceWithLink(LocaleController.getString("ActionPinnedContact", R.string.ActionPinnedContact), "un1", fromUser != null ? fromUser : chat);
             } else if (replyMessageObject.messageOwner.media instanceof TLRPC.TL_messageMediaPoll) {
-                messageText = replaceWithLink(LocaleController.getString("ActionPinnedPoll", R.string.ActionPinnedPoll), "un1", fromUser != null ? fromUser : chat);
+                if (((TLRPC.TL_messageMediaPoll) replyMessageObject.messageOwner.media).poll.quiz) {
+                    messageText = replaceWithLink(LocaleController.getString("ActionPinnedQuiz", R.string.ActionPinnedQuiz), "un1", fromUser != null ? fromUser : chat);
+                } else {
+                    messageText = replaceWithLink(LocaleController.getString("ActionPinnedPoll", R.string.ActionPinnedPoll), "un1", fromUser != null ? fromUser : chat);
+                }
             } else if (replyMessageObject.messageOwner.media instanceof TLRPC.TL_messageMediaPhoto) {
                 messageText = replaceWithLink(LocaleController.getString("ActionPinnedPhoto", R.string.ActionPinnedPhoto), "un1", fromUser != null ? fromUser : chat);
             } else if (replyMessageObject.messageOwner.media instanceof TLRPC.TL_messageMediaGame) {
@@ -1770,27 +1785,48 @@ public class MessageObject {
         return messageOwner.reactions != null && !messageOwner.reactions.results.isEmpty();
     }
 
-    public static void updatePollResults(TLRPC.TL_messageMediaPoll media, TLRPC.TL_pollResults results) {
+    public static void updatePollResults(TLRPC.TL_messageMediaPoll media, TLRPC.PollResults results) {
         if (media == null || results == null) {
             return;
         }
         if ((results.flags & 2) != 0) {
-            byte[] chosen = null;
+            ArrayList<byte[]> chosen = null;
+            byte[] correct = null;
             if (results.min && media.results.results != null) {
                 for (int b = 0, N2 = media.results.results.size(); b < N2; b++) {
                     TLRPC.TL_pollAnswerVoters answerVoters = media.results.results.get(b);
                     if (answerVoters.chosen) {
-                        chosen = answerVoters.option;
-                        break;
+                        if (chosen == null) {
+                            chosen = new ArrayList<>();
+                        }
+                        chosen.add(answerVoters.option);
+                    }
+                    if (answerVoters.correct) {
+                        correct = answerVoters.option;
                     }
                 }
             }
             media.results.results = results.results;
-            if (chosen != null) {
+            if (chosen != null || correct != null) {
                 for (int b = 0, N2 = media.results.results.size(); b < N2; b++) {
                     TLRPC.TL_pollAnswerVoters answerVoters = media.results.results.get(b);
-                    if (Arrays.equals(answerVoters.option, chosen)) {
-                        answerVoters.chosen = true;
+                    if (chosen != null) {
+                        for (int a = 0, N = chosen.size(); a < N; a++) {
+                            if (Arrays.equals(answerVoters.option, chosen.get(a))) {
+                                answerVoters.chosen = true;
+                                chosen.remove(a);
+                                break;
+                            }
+                        }
+                        if (chosen.isEmpty()) {
+                            chosen = null;
+                        }
+                    }
+                    if (correct != null && Arrays.equals(answerVoters.option, correct)) {
+                        answerVoters.correct = true;
+                        correct = null;
+                    }
+                    if (chosen == null && correct == null) {
                         break;
                     }
                 }
@@ -1800,6 +1836,10 @@ public class MessageObject {
         if ((results.flags & 4) != 0) {
             media.results.total_voters = results.total_voters;
             media.results.flags |= 4;
+        }
+        if ((results.flags & 8) != 0) {
+            media.results.recent_voters = results.recent_voters;
+            media.results.flags |= 8;
         }
     }
 
@@ -1826,6 +1866,41 @@ public class MessageObject {
             return false;
         }
         return ((TLRPC.TL_messageMediaPoll) messageOwner.media).poll.closed;
+    }
+
+    public boolean isQuiz() {
+        if (type != TYPE_POLL) {
+            return false;
+        }
+        return ((TLRPC.TL_messageMediaPoll) messageOwner.media).poll.quiz;
+    }
+
+    public boolean isPublicPoll() {
+        if (type != TYPE_POLL) {
+            return false;
+        }
+        return ((TLRPC.TL_messageMediaPoll) messageOwner.media).poll.public_voters;
+    }
+
+    public boolean isPoll() {
+        return type == TYPE_POLL;
+    }
+
+    public boolean canUnvote() {
+        if (type != TYPE_POLL) {
+            return false;
+        }
+        TLRPC.TL_messageMediaPoll mediaPoll = (TLRPC.TL_messageMediaPoll) messageOwner.media;
+        if (mediaPoll.results == null || mediaPoll.results.results.isEmpty() || mediaPoll.poll.quiz) {
+            return false;
+        }
+        for (int a = 0, N = mediaPoll.results.results.size(); a < N; a++) {
+            TLRPC.TL_pollAnswerVoters answer = mediaPoll.results.results.get(a);
+            if (answer.chosen) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean isVoted() {
@@ -2388,7 +2463,11 @@ public class MessageObject {
                 isRestrictedMessage = true;
             } else if (!isMediaEmpty()) {
                 if (messageOwner.media instanceof TLRPC.TL_messageMediaPoll) {
-                    messageText = LocaleController.getString("Poll", R.string.Poll);
+                    if (((TLRPC.TL_messageMediaPoll) messageOwner.media).poll.quiz) {
+                        messageText = LocaleController.getString("QuizPoll", R.string.QuizPoll);
+                    } else {
+                        messageText = LocaleController.getString("Poll", R.string.Poll);
+                    }
                 } else if (messageOwner.media instanceof TLRPC.TL_messageMediaPhoto) {
                     if (messageOwner.media.ttl_seconds != 0 && !(messageOwner instanceof TLRPC.TL_message_secret)) {
                         messageText = LocaleController.getString("AttachDestructingPhoto", R.string.AttachDestructingPhoto);
@@ -2472,13 +2551,13 @@ public class MessageObject {
                 contentType = 1;
                 type = 10;
             } else if (messageOwner.media instanceof TLRPC.TL_messageMediaPhoto) {
-                type = 1;
+                type = TYPE_PHOTO;
             } else if (messageOwner.media instanceof TLRPC.TL_messageMediaGeo || messageOwner.media instanceof TLRPC.TL_messageMediaVenue || messageOwner.media instanceof TLRPC.TL_messageMediaGeoLive) {
                 type = 4;
             } else if (isRoundVideo()) {
                 type = TYPE_ROUND_VIDEO;
             } else if (isVideo()) {
-                type = 3;
+                type = TYPE_VIDEO;
             } else if (isVoice()) {
                 type = 2;
             } else if (isMusic()) {
@@ -2487,6 +2566,7 @@ public class MessageObject {
                 type = 12;
             } else if (messageOwner.media instanceof TLRPC.TL_messageMediaPoll) {
                 type = TYPE_POLL;
+                checkedVotes = new ArrayList<>();
             } else if (messageOwner.media instanceof TLRPC.TL_messageMediaUnsupported) {
                 type = 0;
             } else if (messageOwner.media instanceof TLRPC.TL_messageMediaDocument) {
@@ -3047,7 +3127,7 @@ public class MessageObject {
                 if (!(linkDescription instanceof Spannable)) {
                     linkDescription = new SpannableStringBuilder(linkDescription);
                 }
-                addUrlsByPattern(isOutOwner(), linkDescription, false, hashtagsType, 0);
+                addUrlsByPattern(isOutOwner(), linkDescription, false, hashtagsType, 0, false);
             }
         }
     }
@@ -3091,19 +3171,19 @@ public class MessageObject {
                         FileLog.e(e);
                     }
                 }
-                addUrlsByPattern(isOutOwner(), caption, true, 0, 0);
+                addUrlsByPattern(isOutOwner(), caption, true, 0, 0, true);
             }
 
             addEntitiesToText(caption, useManualParse);
             if (isVideo()) {
-                addUrlsByPattern(isOutOwner(), caption, true, 3, getDuration());
+                addUrlsByPattern(isOutOwner(), caption, true, 3, getDuration(), false);
             } else if (isMusic() || isVoice()) {
-                addUrlsByPattern(isOutOwner(), caption, true, 4, getDuration());
+                addUrlsByPattern(isOutOwner(), caption, true, 4, getDuration(), false);
             }
         }
     }
 
-    public static void addUrlsByPattern(boolean isOut, CharSequence charSequence, boolean botCommands, int patternType, int duration) {
+    public static void addUrlsByPattern(boolean isOut, CharSequence charSequence, boolean botCommands, int patternType, int duration, boolean check) {
         try {
             Matcher matcher;
             if (patternType == 3 || patternType == 4) {
@@ -3192,6 +3272,12 @@ public class MessageObject {
                     }
                 }
                 if (url != null) {
+                    if (check) {
+                        ClickableSpan[] spans = spannable.getSpans(start, end, ClickableSpan.class);
+                        if (spans != null && spans.length > 0) {
+                            spannable.removeSpan(spans[0]);
+                        }
+                    }
                     spannable.setSpan(url, start, end, 0);
                 }
             }
@@ -3262,10 +3348,10 @@ public class MessageObject {
     }
 
     public static void addLinks(boolean isOut, CharSequence messageText) {
-        addLinks(isOut, messageText, true);
+        addLinks(isOut, messageText, true, false);
     }
 
-    public static void addLinks(boolean isOut, CharSequence messageText, boolean botCommands) {
+    public static void addLinks(boolean isOut, CharSequence messageText, boolean botCommands, boolean check) {
         if (messageText instanceof Spannable && containsUrls(messageText)) {
             if (messageText.length() < 1000) {
                 try {
@@ -3280,7 +3366,7 @@ public class MessageObject {
                     FileLog.e(e);
                 }
             }
-            addUrlsByPattern(isOut, messageText, botCommands, 0, 0);
+            addUrlsByPattern(isOut, messageText, botCommands, 0, 0, check);
         }
     }
 
@@ -3497,6 +3583,9 @@ public class MessageObject {
                 } else {
                     spannable.setSpan(new URLSpanBrowser(url, run), run.start, run.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 }
+            } else if (run.urlEntity instanceof TLRPC.TL_messageEntityBankCard) {
+                hasUrls = true;
+                spannable.setSpan(new URLSpanNoUnderline("card:" + url, run), run.start, run.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else if (run.urlEntity instanceof TLRPC.TL_messageEntityPhone) {
                 hasUrls = true;
                 String tel = PhoneFormat.stripExceptNumbers(url);
@@ -3630,7 +3719,7 @@ public class MessageObject {
                 messageOwner.id < 0 || messageOwner.media instanceof TLRPC.TL_messageMediaUnsupported);
 
         if (useManualParse) {
-            addLinks(isOutOwner(), messageText);
+            addLinks(isOutOwner(), messageText, true, true);
         } else {
             if (messageText instanceof Spannable && messageText.length() < 1000) {
                 try {
@@ -3641,12 +3730,12 @@ public class MessageObject {
             }
         }
         if (isYouTubeVideo() || replyMessageObject != null && replyMessageObject.isYouTubeVideo()) {
-            addUrlsByPattern(isOutOwner(), messageText, false, 3, Integer.MAX_VALUE);
+            addUrlsByPattern(isOutOwner(), messageText, false, 3, Integer.MAX_VALUE, false);
         } else if (replyMessageObject != null) {
             if (replyMessageObject.isVideo()) {
-                addUrlsByPattern(isOutOwner(), messageText, false, 3, replyMessageObject.getDuration());
+                addUrlsByPattern(isOutOwner(), messageText, false, 3, replyMessageObject.getDuration(), false);
             } else if (replyMessageObject.isMusic() || replyMessageObject.isVoice()) {
-                addUrlsByPattern(isOutOwner(), messageText, false, 4, replyMessageObject.getDuration());
+                addUrlsByPattern(isOutOwner(), messageText, false, 4, replyMessageObject.getDuration(), false);
             }
         }
 
@@ -3703,6 +3792,7 @@ public class MessageObject {
                 block.textLayout = textLayout;
                 block.textYOffset = 0;
                 block.charactersOffset = 0;
+                block.charactersEnd = textLayout.getText().length();
                 if (emojiOnlyCount != 0) {
                     switch (emojiOnlyCount) {
                         case 1:
@@ -5045,7 +5135,7 @@ public class MessageObject {
         File cacheFile = null;
         attachPathExists = false;
         mediaExists = false;
-        if (type == 1) {
+        if (type == TYPE_PHOTO) {
             TLRPC.PhotoSize currentPhotoObject = FileLoader.getClosestPhotoSizeWithSize(photoThumbs, AndroidUtilities.getPhotoSize());
             if (currentPhotoObject != null) {
                 File file = FileLoader.getPathToMessage(messageOwner);
@@ -5056,7 +5146,8 @@ public class MessageObject {
                     mediaExists = file.exists();
                 }
             }
-        } else if (type == 8 || type == 3 || type == 9 || type == 2 || type == 14 || type == TYPE_ROUND_VIDEO) {
+        }
+        if (!mediaExists && type == 8 || type == 3 || type == 9 || type == 2 || type == 14 || type == TYPE_ROUND_VIDEO) {
             if (messageOwner.attachPath != null && messageOwner.attachPath.length() > 0) {
                 File f = new File(messageOwner.attachPath);
                 attachPathExists = f.exists();
@@ -5070,7 +5161,8 @@ public class MessageObject {
                     mediaExists = file.exists();
                 }
             }
-        } else {
+        }
+        if (!mediaExists) {
             TLRPC.Document document = getDocument();
             if (document != null) {
                 if (isWallpaper()) {
@@ -5086,6 +5178,10 @@ public class MessageObject {
                 if (currentPhotoObject != null) {
                     mediaExists = FileLoader.getPathToAttach(currentPhotoObject, true).exists();
                 }
+            }
+
+            if (!mediaExists && document != null) {
+                loadedFileSize = FileLoader.getTempFileSize(document, MessageObject.isVideoDocument(document) && shouldEncryptPhotoOrVideo());
             }
         }
     }

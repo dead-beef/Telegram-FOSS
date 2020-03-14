@@ -1,3 +1,23 @@
+### v5.15.0
+New Profiles, Fast Media Viewer and People Nearby 2.0
+- Access shared media directly from the redesigned profile pages.
+- Pull down to enlarge profile pictures.
+- Flip through photos by tapping on their left or right edge.
+- Tap on your chat partner's profile picture to immediately expand it.
+- Make your profile visible to others in your area from 'Contacts' > 'Add People Nearby' and make new friends.
+
+### v5.14.0
+Polls 2.0: Visible Votes, Multiple Answers, and Quiz Mode
+- Create three new kinds of polls.
+- See who voted for what in polls with visible votes.
+- Vote for several options in polls that allow multiple answers.
+- Try to guess the correct answer in quiz-style polls.
+- Use bots like @QuizBot to create quizzes with multiple questions.
+- See exact progress counters for files as they upload or download.
+- Change the appearance of message bubbles.
+- **Telegram FOSS:**
+  - Fix for push service (hopefully)
+
 ### v5.13.1
 - Create themes with color gradients and patterns.
 - Schedule messages to be sent when your recipient comes online.
