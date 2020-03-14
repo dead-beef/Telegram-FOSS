@@ -2,6 +2,7 @@
 .gradle/
 build/
 obj/
+/vars.sh
 *.iml
 local.properties
 *.keystore
