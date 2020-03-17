@@ -46,63 +46,59 @@ if [[ -e vars.sh ]]; then
     source vars.sh
 fi
 
-if [[ -n $build_apk ]]; then
-    if [[ -z $JAVA_HOME ]]; then
-        dir="${HOME}/java/"
-        if [[ -d $dir ]]; then
-            export JAVA_HOME="$dir"
-        else
-            echo "Error: JAVA_HOME is not set and ${dir} does not exist" >&2
-            exit 1
-        fi
-    fi
-
-    if [[ -z $ANDROID_HOME ]]; then
-        dir="${HOME}/Android/Sdk"
-        if [[ -d $dir ]]; then
-            export ANDROID_HOME="$dir"
-        else
-            echo "Error: ANDROID_HOME is not set and ${dir} does not exist" >&2
-            exit 1
-        fi
-    fi
-
-    if [[ -z $ANDROID_BUILD_TOOLS ]]; then
-        dir="$(ls "${ANDROID_HOME}/build-tools" | head -n 1)"
-        if [[ -n $dir ]]; then
-            ANDROID_BUILD_TOOLS="${ANDROID_HOME}/build-tools/${dir}"
-        else
-            echo "Error: ANDROID_BUILD_TOOLS is not set and ${ANDROID_HOME}/build-tools/<version> does not exist" >&2
-            exit 1
-        fi
-    fi
-
-    if [[ -z $NDK ]]; then
-        dir="$(ls "${ANDROID_HOME}/ndk" | head -n 1)"
-        if [[ -n $dir ]]; then
-            export NDK="${ANDROID_HOME}/ndk/${dir}"
-        else
-            echo "Error: NDK is not set and ${ANDROID_HOME}/ndk/<version> does not exist" >&2
-            exit 1
-        fi
-    fi
-
-    if [[ -z $KEY ]]; then
-        KEY='release-key.keystore'
-        KEY_ALIAS='key-alias'
-        KEY_PASSWORD='release'
+if [[ -z $JAVA_HOME ]]; then
+    dir="${HOME}/java/"
+    if [[ -d $dir ]]; then
+        export JAVA_HOME="$dir"
+    else
+        echo "Error: JAVA_HOME is not set and ${dir} does not exist" >&2
+        exit 1
     fi
 fi
 
-if [[ -n $build_deps ]]; then
-    if [[ -z $NINJA_PATH ]]; then
-        if [[ -f /usr/bin/ninja ]]; then
-            export NINJA_PATH=/usr/bin/ninja
-        else
-            echo 'Error: NINJA_PATH is not set and /usr/bin/ninja does not exist' >&2
-            exit 1
-        fi
+if [[ -z $ANDROID_HOME ]]; then
+    dir="${HOME}/Android/Sdk"
+    if [[ -d $dir ]]; then
+        export ANDROID_HOME="$dir"
+    else
+        echo "Error: ANDROID_HOME is not set and ${dir} does not exist" >&2
+        exit 1
     fi
+fi
+
+if [[ -z $ANDROID_BUILD_TOOLS ]]; then
+    dir="$(ls "${ANDROID_HOME}/build-tools" | head -n 1)"
+    if [[ -n $dir ]]; then
+        ANDROID_BUILD_TOOLS="${ANDROID_HOME}/build-tools/${dir}"
+    else
+        echo "Error: ANDROID_BUILD_TOOLS is not set and ${ANDROID_HOME}/build-tools/<version> does not exist" >&2
+        exit 1
+    fi
+fi
+
+if [[ -z $NDK ]]; then
+    dir="$(ls "${ANDROID_HOME}/ndk" | head -n 1)"
+    if [[ -n $dir ]]; then
+        export NDK="${ANDROID_HOME}/ndk/${dir}"
+    else
+        echo "Error: NDK is not set and ${ANDROID_HOME}/ndk/<version> does not exist" >&2
+        exit 1
+    fi
+fi
+
+if [[ -z $NINJA_PATH ]]; then
+    if [[ -f /usr/bin/ninja ]]; then
+        export NINJA_PATH=/usr/bin/ninja
+    else
+        echo 'Error: NINJA_PATH is not set and /usr/bin/ninja does not exist' >&2
+        exit 1
+    fi
+fi
+
+if [[ -z $KEY ]]; then
+    KEY='release-key.keystore'
+    KEY_ALIAS='key-alias'
+    KEY_PASSWORD='release'
 fi
 
 
