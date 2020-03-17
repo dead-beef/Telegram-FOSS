@@ -61,6 +61,8 @@ You can also join `#telegram-foss:matrix.org` via [matrix](https://matrix.to/#/#
 - Allow to set a proxy before login
 - Added the ability to parse locations from intents containing a `geo:<lat>,<lon>,<zoom>` string
 - Force static map previews from Telegram
+- Added the ability to export the database
+- Hide messages from blocked users
 
 ## Versioning
 
@@ -90,19 +92,27 @@ Consider using a Linux VM or dual booting.**
 2. Don't forget to include the submodules when you clone:
       - `git clone --recursive https://github.com/Telegram-FOSS-Team/Telegram-FOSS.git`
 
-3. Build native FFmpeg and BoringSSL dependencies:
-      - Go to the `TMessagesProj/jni` folder and execute the following (define the paths to your NDK and Ninja):
+3. Define the variables:
+   ```
+   cat >vars.sh <<EOF
+   export NINJA_PATH=[PATH_TO_NINJA]
+   export JAVA_HOME=[PATH_TO_JAVA]
+   export ANDROID_HOME=[PATH_TO_ANDROID_SDK]
+   export ANDROID_BUILD_TOOLS=[PATH_TO_ANDROID_BUILD_TOOLS]
+   export NDK=[PATH_TO_NDK]
 
-      ```
-      export NDK=[PATH_TO_NDK]
-      export NINJA_PATH=[PATH_TO_NINJA]
-      ./build_ffmpeg_clang.sh
-      ./patch_ffmpeg.sh
-      ./patch_boringssl.sh
-      ./build_boringssl.sh
-      ```
+   KEY=[PATH_TO_KEYSTORE]
+   KEY_ALIAS=[KEY_ALIAS]
+   KEY_PASSWORD=[KEYSTORE_PASSWORD]
+   EOF
+   ```
 
-4. If you want to publish a modified version of Telegram:
+4. Build native FFmpeg and BoringSSL dependencies:
+   ```
+   ./build.sh -d
+   ```
+
+5. If you want to publish a modified version of Telegram:
       - You should get **your own API key** here: https://core.telegram.org/api/obtaining_api_id and create a file called `API_KEYS` in the source root directory.
         The contents should look like this:
         ```
@@ -113,9 +123,9 @@ Consider using a Linux VM or dual booting.**
       - Take good care of your users' data and privacy
       - **Please remember to publish your code too in order to comply with the licenses**
 
-The project can be built with Android Studio or from the command line with gradle:
+The project can be built with Android Studio or from the command line:
 
-`./gradlew assembleAfatRelease`
+`./build.sh`
 
 # DIGITAL RESISTANCE
 
