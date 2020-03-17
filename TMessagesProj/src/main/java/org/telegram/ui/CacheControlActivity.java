@@ -16,6 +16,8 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.os.Environment;
 
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
@@ -65,6 +67,8 @@ public class CacheControlActivity extends BaseFragment {
     private int keepMediaInfoRow;
     private int cacheRow;
     private int cacheInfoRow;
+    private int exportDatabaseRow;
+    private int exportDatabaseInfoRow;
     private int rowCount;
 
     private long databaseSize = -1;
@@ -93,6 +97,9 @@ public class CacheControlActivity extends BaseFragment {
 
         databaseRow = rowCount++;
         databaseInfoRow = rowCount++;
+
+        exportDatabaseRow = rowCount++;
+        exportDatabaseInfoRow = rowCount++;
 
         databaseSize = MessagesStorage.getInstance(currentAccount).getDatabaseSize();
 
@@ -230,6 +237,63 @@ public class CacheControlActivity extends BaseFragment {
                     FileLog.e(e);
                 }
             });
+        });
+    }
+
+    public String getDatabaseExportPath() {
+        File dir = AndroidUtilities.getDatabaseExportDir();
+        if (dir == null) {
+            return "<error>";
+        }
+        return dir.getAbsolutePath();
+    }
+
+    public void exportDatabase(boolean raw) {
+        MessagesStorage messages = getMessagesStorage();
+
+        final AlertDialog progressDialog = new AlertDialog(getParentActivity(), 3);
+        progressDialog.setCanCacnel(false);
+        progressDialog.show();
+
+        messages.getStorageQueue().postRunnable(() -> {
+            File out = null;
+            String msg = null;
+            try {
+                String ext;
+                if (raw) {
+                    ext = ".db";
+                } else {
+                    ext = ".json";
+                }
+                out = AndroidUtilities.generateDatabaseExportPath(ext);
+                if (out == null) {
+                    throw new Exception("Can't get database directory");
+                }
+                if (raw) {
+                    messages.copyDatabase(out);
+                } else {
+                    messages.exportDatabase(out);
+                }
+                msg = out.toString();
+            } catch (Exception e) {
+                FileLog.e(e);
+                msg = e.toString();
+                if (out != null) {
+                    out.delete();
+                }
+            } finally {
+                final String finalMsg = msg;
+                AndroidUtilities.runOnUIThread(() -> {
+                    try {
+                        progressDialog.dismiss();
+                        if (finalMsg != null) {
+                            Toast.makeText(getParentActivity(), finalMsg, Toast.LENGTH_LONG).show();
+                        }
+                    } catch (Exception e) {
+                        FileLog.e(e);
+                    }
+                });
+            }
         });
     }
 
@@ -460,6 +524,22 @@ public class CacheControlActivity extends BaseFragment {
                 builder.setCustomView(linearLayout);
                 showDialog(builder.create());
             }
+            else if(position == exportDatabaseRow) {
+                BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity());
+                builder.setItems(
+                    new CharSequence[]{
+                        LocaleController.getString("ExportDatabaseJSON", R.string.ExportDatabaseJSON),
+                        LocaleController.getString("ExportDatabaseRaw", R.string.ExportDatabaseRaw)
+                    },
+                    (dialog, which) -> {
+                        exportDatabase(which > 0);
+                        /*if (listAdapter != null) {
+                            listAdapter.notifyDataSetChanged();
+                        }*/
+                    }
+                );
+                showDialog(builder.create());
+            }
         });
 
         return fragmentView;
@@ -484,7 +564,7 @@ public class CacheControlActivity extends BaseFragment {
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             int position = holder.getAdapterPosition();
-            return position == databaseRow || position == cacheRow && totalSize > 0 || position == keepMediaRow;
+            return position == databaseRow || position == cacheRow && totalSize > 0 || position == keepMediaRow || position == exportDatabaseRow;
         }
 
         @Override
@@ -535,6 +615,8 @@ public class CacheControlActivity extends BaseFragment {
                             value = LocaleController.getString("KeepMediaForever", R.string.KeepMediaForever);
                         }
                         textCell.setTextAndValue(LocaleController.getString("KeepMedia", R.string.KeepMedia), value, false);
+                    } else if (position == exportDatabaseRow) {
+                        textCell.setText(LocaleController.getString("ExportDatabase", R.string.ExportDatabase), false);
                     }
                     break;
                 case 1:
@@ -548,6 +630,9 @@ public class CacheControlActivity extends BaseFragment {
                     } else if (position == keepMediaInfoRow) {
                         privacyCell.setText(AndroidUtilities.replaceTags(LocaleController.getString("KeepMediaInfo", R.string.KeepMediaInfo)));
                         privacyCell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
+                    } else if(position == exportDatabaseInfoRow) {
+                        privacyCell.setText(LocaleController.getString("ExportDatabaseInfo", R.string.ExportDatabaseInfo) + getDatabaseExportPath());
+                        privacyCell.setBackgroundDrawable(Theme.getThemedDrawable(mContext, R.drawable.greydivider, Theme.key_windowBackgroundGrayShadow));
                     }
                     break;
             }
@@ -555,7 +640,7 @@ public class CacheControlActivity extends BaseFragment {
 
         @Override
         public int getItemViewType(int i) {
-            if (i == databaseInfoRow || i == cacheInfoRow || i == keepMediaInfoRow) {
+            if (i == databaseInfoRow || i == cacheInfoRow || i == keepMediaInfoRow || i == exportDatabaseInfoRow) {
                 return 1;
             }
             return 0;

@@ -18,14 +18,28 @@ import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.SQLite.SQLiteDatabase;
 import org.telegram.SQLite.SQLitePreparedStatement;
+import org.telegram.SQLite.SQLiteException;
 import org.telegram.messenger.support.SparseLongArray;
+import org.telegram.tgnet.AbstractSerializedData;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.RequestDelegate;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
 
+import org.json.JSONObject;
+import org.json.JSONException;
+
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,6 +48,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
+
 
 public class MessagesStorage extends BaseController {
 
@@ -8274,6 +8291,101 @@ public class MessagesStorage extends BaseController {
             FileLog.e(e);
         }
         return chat[0];
+    }
+
+    public void copyDatabase(final File dst) throws IOException {
+        InputStream in = new FileInputStream(cacheFile);
+        try {
+            OutputStream out = new FileOutputStream(dst);
+            try {
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+            } finally {
+                out.close();
+            }
+        } finally {
+            in.close();
+        }
+    }
+
+    void exportDatabaseObjects(BufferedWriter out, Class cls, String table) throws JSONException, IOException, SQLiteException, NoSuchMethodException {
+        final Method TLdeserialize = cls.getMethod("TLdeserialize", new Class[] { AbstractSerializedData.class, int.class, boolean.class });
+        final Method serializeToJSON = cls.getMethod("serializeToJSON", new Class[] {});
+        final SQLiteCursor cursor = database.queryFinalized("SELECT data FROM " + table);
+        boolean first = true;
+        try {
+            out.write('[');
+            while (cursor.next()) {
+                byte[] bytes = cursor.byteArrayValue(0);
+                if (bytes == null || bytes.length == 0) {
+                    continue;
+                }
+                ByteBuffer buf = ByteBuffer.wrap(bytes);
+                buf.order(ByteOrder.LITTLE_ENDIAN);
+                NativeByteBuffer data = new NativeByteBuffer(buf);
+                Object obj = null;
+                try {
+                    obj = TLdeserialize.invoke(null, data, data.readInt32(true), true);
+                } catch(InvocationTargetException ex) {
+                } catch(IllegalAccessException ex) {
+                }
+                if (obj != null) {
+                    Object json = null;
+                    try {
+                        json = serializeToJSON.invoke(obj);
+                    } catch(InvocationTargetException ex) {
+                    } catch(IllegalAccessException ex) {
+                    }
+                    if(json != null) {
+                        if (first) {
+                            first = false;
+                        } else {
+                            out.write(',');
+                        }
+                        out.write(json.toString());
+                        out.write('\n');
+                    }
+                }
+            }
+            out.write(']');
+        }
+        finally {
+            cursor.dispose();
+        }
+    }
+
+    public void exportDatabase(final File dst) throws JSONException, IOException, SQLiteException, NoSuchMethodException, IllegalAccessException {
+        BufferedWriter out = null;
+        try {
+            out = new BufferedWriter(new FileWriter(dst));
+
+            out.write("{\n");
+
+            out.write("\"users\": ");
+            exportDatabaseObjects(out, TLRPC.User.class, "users");
+            out.write(",\n");
+
+            out.write("\"chats\": ");
+            exportDatabaseObjects(out, TLRPC.Chat.class, "chats");
+            out.write(",\n");
+
+            out.write("\"dialogs\": ");
+            exportDatabaseObjects(out, TLRPC.Dialog.class, "dialogs");
+            out.write(",\n");
+
+            out.write("\"messages\": ");
+            exportDatabaseObjects(out, TLRPC.Message.class, "messages");
+            out.write("\n");
+
+            out.write("}\n");
+        } finally {
+            try {
+                out.close();
+            } catch(Exception e) {}
+        }
     }
 
     public TLRPC.User getUser(final int user_id) {

@@ -14,6 +14,9 @@ import org.telegram.messenger.Utilities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import org.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 @SuppressWarnings("unchecked")
 public class TLRPC {
@@ -878,6 +881,27 @@ public class TLRPC {
 		public String performer;
 		public boolean voice;
 		public byte[] waveform;
+
+        @Override
+        public JSONObject serializeToJSON() throws JSONException {
+            JSONObject obj = new JSONObject();
+            if(!Utilities.isEmpty(alt)) {
+                obj.put("alt", alt);
+            }
+            if(!Utilities.isEmpty(title)) {
+                obj.put("title", title);
+            }
+            if(!Utilities.isEmpty(performer)) {
+                obj.put("performer", performer);
+            }
+            if(!Utilities.isEmpty(file_name)) {
+                obj.put("file_name", file_name);
+            }
+            if(stickerset != null) {
+                obj.put("stickerset", stickerset.serializeToJSON());
+            }
+            return obj;
+        }
 
 		public static DocumentAttribute TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
 			DocumentAttribute result = null;
@@ -2780,6 +2804,21 @@ public class TLRPC {
 		public int user_id;
 		public int chat_id;
 
+        @Override
+        public JSONObject serializeToJSON() throws JSONException {
+            JSONObject obj = new JSONObject();
+            if (channel_id != 0) {
+                obj.put("channel", channel_id);
+            }
+            if (user_id != 0) {
+                obj.put("user_id", user_id);
+            }
+            if (chat_id != 0) {
+                obj.put("chat_id", chat_id);
+            }
+            return obj;
+        }
+
 		public static Peer TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
 			Peer result = null;
 			switch (constructor) {
@@ -3885,6 +3924,14 @@ public class TLRPC {
 		public double _long;
 		public double lat;
 		public long access_hash;
+
+        @Override
+        public JSONObject serializeToJSON() throws JSONException {
+            JSONObject obj = new JSONObject();
+            obj.put("lat", lat);
+            obj.put("long", _long);
+            return obj;
+        }
 
 		public static GeoPoint TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
 			GeoPoint result = null;
@@ -13614,6 +13661,16 @@ public class TLRPC {
 		public boolean explicit_content;
         public ArrayList<TL_restrictionReason> restriction_reason = new ArrayList<>();
 
+        @Override
+        public JSONObject serializeToJSON() throws JSONException {
+            JSONObject obj = new JSONObject();
+            obj.put("id", id);
+            obj.put("first_name", first_name);
+            obj.put("last_name", last_name);
+            obj.put("username", username);
+            return obj;
+        }
+
 		public static User TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
 			User result = null;
 			switch (constructor) {
@@ -17064,6 +17121,29 @@ public class TLRPC {
 		public byte[] iv;
 		public ArrayList<DocumentAttribute> attributes = new ArrayList<>();
 
+        @Override
+        public JSONObject serializeToJSON() throws JSONException {
+            JSONObject obj = new JSONObject();
+            if(!Utilities.isEmpty(file_name)) {
+                obj.put("name", file_name);
+            }
+            if(!Utilities.isEmpty(mime_type)) {
+                obj.put("type", mime_type);
+            }
+            obj.put("size", size);
+            obj.put("id", id);
+            obj.put("access_hash", access_hash);
+            obj.put("file_reference", Utilities.b64encode(file_reference));
+
+            JSONArray attrs = new JSONArray();
+            for(DocumentAttribute attr : attributes) {
+                attrs.put(attr.serializeToJSON());
+            }
+            obj.put("attributes", attrs);
+
+            return obj;
+        }
+
 		public static Document TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
 			Document result = null;
 			switch (constructor) {
@@ -19378,6 +19458,15 @@ public class TLRPC {
         public long id;
         public long access_hash;
         public String short_name;
+
+        @Override
+        public JSONObject serializeToJSON() throws JSONException {
+            JSONObject obj = new JSONObject();
+            obj.put("id", id);
+            obj.put("access_hash", access_hash);
+            obj.put("short_name", short_name);
+            return obj;
+        }
 
         public static InputStickerSet TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
             InputStickerSet result = null;
@@ -23002,6 +23091,22 @@ public class TLRPC {
         public int user_id;
         public GeoPoint geo;
         public String caption;
+
+        @Override
+        public JSONObject serializeToJSON() throws JSONException {
+            JSONObject obj = new JSONObject();
+            if(geo != null) {
+                obj.put("geo", geo.serializeToJSON());
+            }
+            if(!Utilities.isEmpty(caption)) {
+                obj.put("caption", caption);
+            }
+            obj.put("id", id);
+            obj.put("access_hash", access_hash);
+            obj.put("file_reference", Utilities.b64encode(file_reference));
+            return obj;
+        }
+
 
         public static Photo TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
             Photo result = null;
@@ -28284,6 +28389,15 @@ public class TLRPC {
         public TL_chatBannedRights default_banned_rights;
 		public InputChannel migrated_to;
 
+        @Override
+        public JSONObject serializeToJSON() throws JSONException {
+            JSONObject obj = new JSONObject();
+            obj.put("id", id);
+            obj.put("title", title);
+            obj.put("username", username);
+            return obj;
+        }
+
 		public static Chat TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
 			Chat result = null;
 			switch (constructor) {
@@ -30087,6 +30201,27 @@ public class TLRPC {
         public String post_author;
         public Peer saved_from_peer;
         public int saved_from_msg_id;
+
+        @Override
+        public JSONObject serializeToJSON() throws JSONException {
+            JSONObject obj = new JSONObject();
+            if (channel_id != 0) {
+                obj.put("channel_id", channel_id);
+            }
+            if (channel_post != 0) {
+                obj.put("channel_post", channel_post);
+            }
+            if (from_id != 0) {
+                obj.put("from_id", from_id);
+            }
+            if (!Utilities.isEmpty(from_name)) {
+                obj.put("from_name", from_name);
+            }
+            if (saved_from_peer != null) {
+                obj.put("saved_from_peer", saved_from_peer.serializeToJSON());
+            }
+            return obj;
+        }
 
         public static MessageFwdHeader TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
             MessageFwdHeader result = null;
@@ -39692,6 +39827,45 @@ public class TLRPC {
 		public int period;
         public int ttl_seconds;
 
+        @Override
+        public JSONObject serializeToJSON() throws JSONException {
+            JSONObject obj = new JSONObject();
+
+            if(!Utilities.isEmpty(description)) {
+                obj.put("description", description);
+            }
+            if(!Utilities.isEmpty(captionLegacy)) {
+                obj.put("caption", captionLegacy);
+            }
+            if(!Utilities.isEmpty(title)) {
+                obj.put("title", title);
+            }
+            if(!Utilities.isEmpty(phone_number)) {
+                obj.put("phone_number", phone_number);
+            }
+            if(!Utilities.isEmpty(first_name)) {
+                obj.put("first_name", first_name);
+            }
+            if(!Utilities.isEmpty(last_name)) {
+                obj.put("last_name", last_name);
+            }
+            if(user_id != 0) {
+                obj.put("user_id", user_id);
+            }
+
+            if(geo != null) {
+                obj.put("geo", geo.serializeToJSON());
+            }
+            if(photo != null) {
+                obj.put("photo", photo.serializeToJSON());
+            }
+            if(document != null) {
+                obj.put("document", document.serializeToJSON());
+            }
+
+            return obj;
+        }
+
 		public static MessageMedia TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
 			MessageMedia result = null;
 			switch (constructor) {
@@ -40202,6 +40376,44 @@ public class TLRPC {
         public TLRPC.Message replyMessage; //custom
 		public int reqId; //custom
         public int realId; //custom
+
+
+        @Override
+        public JSONObject serializeToJSON() throws JSONException {
+            JSONObject obj = new JSONObject();
+            obj.put("id", id);
+            obj.put("from_id", from_id);
+            obj.put("date", date);
+            if(reply_to_msg_id != 0) {
+                obj.put("reply_to_msg_id", reply_to_msg_id);
+            }
+            if(!Utilities.isEmpty(message)) {
+                obj.put("message", message);
+            }
+            if(via_bot_id != 0) {
+                obj.put("via_bot_id", via_bot_id);
+                obj.put("via_bot_name", via_bot_name);
+            }
+            if(!Utilities.isEmpty(post_author)) {
+                obj.put("post_author", post_author);
+            }
+            if(action != null) {
+                // public MessageAction action;
+            }
+            if(to_id != null) {
+                obj.put("to", to_id.serializeToJSON());
+            }
+            if(fwd_from != null) {
+                obj.put("fwd_from", fwd_from.serializeToJSON());
+            }
+            if(media != null) {
+                obj.put("media", media.serializeToJSON());
+            }
+            /*
+              public ArrayList<MessageEntity> entities = new ArrayList<>();
+            */
+            return obj;
+        }
 
 
         public static Message TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
@@ -42265,6 +42477,15 @@ public class TLRPC {
         public int last_message_date; //custom
         public long id; //custom
         public int pinnedNum; //custom
+
+        @Override
+        public JSONObject serializeToJSON() throws JSONException {
+            JSONObject obj = new JSONObject();
+            obj.put("id", id);
+            obj.put("folder_id", folder_id);
+            obj.put("peer", peer.serializeToJSON());
+            return obj;
+        }
 
         public static Dialog TLdeserialize(AbstractSerializedData stream, int constructor, boolean exception) {
             Dialog result = null;

@@ -1804,6 +1804,10 @@
     <string name="KeepMediaForever">Forever</string>
     <string name="AudioAutodownload">Voice messages</string>
     <string name="VideoMessagesAutodownload">Video messages</string>
+    <string name="ExportDatabase">Export database</string>
+    <string name="ExportDatabaseInfo">Export database to directory: </string>
+    <string name="ExportDatabaseJSON">JSON</string>
+    <string name="ExportDatabaseRaw">Raw</string>
     <!--passport view-->
     <string name="TelegramPassport">Telegram Passport</string>
     <string name="PassportRequestedInformation">Requested Information</string>

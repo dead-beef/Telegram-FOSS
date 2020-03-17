@@ -8,6 +8,9 @@
 
 package org.telegram.tgnet;
 
+import org.json.JSONObject;
+import org.json.JSONException;
+
 public class TLObject {
 
     public int networkType;
@@ -30,6 +33,12 @@ public class TLObject {
 
     public void serializeToStream(AbstractSerializedData stream) {
 
+    }
+
+    public JSONObject serializeToJSON() throws JSONException {
+        JSONObject obj = new JSONObject();
+        obj.put("implemented", false);
+        return obj;
     }
 
     public TLObject deserializeResponse(AbstractSerializedData stream, int constructor, boolean exception) {

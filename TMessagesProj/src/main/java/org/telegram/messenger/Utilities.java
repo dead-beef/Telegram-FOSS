@@ -22,6 +22,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Base64;
 
 public class Utilities {
 
@@ -383,5 +384,17 @@ public class Utilities {
             FileLog.e(e);
         }
         return null;
+    }
+
+    public static boolean isEmpty(String str) {
+        return str == null || str.length() <= 0;
+    }
+
+    public static boolean isEmpty(byte[] bytes) {
+        return bytes == null || bytes.length <= 0;
+    }
+
+    public static String b64encode(byte[] bytes) {
+        return new String(Base64.getEncoder().encode(bytes));
     }
 }

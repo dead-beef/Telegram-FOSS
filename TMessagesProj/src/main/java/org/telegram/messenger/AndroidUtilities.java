@@ -1924,7 +1924,7 @@ public class AndroidUtilities {
     }
 
     private static File getAlbumDir(boolean secretChat) {
-        if (secretChat || Build.VERSION.SDK_INT >= 23 && ApplicationLoader.applicationContext.checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (Build.VERSION.SDK_INT >= 23 && ApplicationLoader.applicationContext.checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             return FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE);
         }
         File storageDir = null;
@@ -1944,6 +1944,26 @@ public class AndroidUtilities {
             }
         }
 
+        return storageDir;
+    }
+
+    public static File getDatabaseExportDir() {
+        File storageDir = null;
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+            storageDir = new File(ApplicationLoader.applicationContext.getExternalFilesDir(null), "Database");
+            if (!storageDir.mkdirs()) {
+                if (!storageDir.exists()) {
+                    if (BuildVars.LOGS_ENABLED) {
+                        FileLog.d("failed to create directory");
+                    }
+                    return null;
+                }
+            }
+        } else {
+            if (BuildVars.LOGS_ENABLED) {
+                FileLog.d("External storage is not mounted READ/WRITE.");
+            }
+        }
         return storageDir;
     }
 
@@ -2114,6 +2134,19 @@ public class AndroidUtilities {
             date.setTime(System.currentTimeMillis() + Utilities.random.nextInt(1000) + 1);
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(date);
             return new File(storageDir, "VID_" + timeStamp + ".mp4");
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return null;
+    }
+
+    public static File generateDatabaseExportPath(String ext) {
+        try {
+            File storageDir = getDatabaseExportDir();
+            Date date = new Date();
+            date.setTime(System.currentTimeMillis() + Utilities.random.nextInt(1000) + 1);
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(date);
+            return new File(storageDir, "DB_" + timeStamp + ext);
         } catch (Exception e) {
             FileLog.e(e);
         }

@@ -64,6 +64,10 @@ public class NativeByteBuffer extends AbstractSerializedData {
         justCalc = calculate;
     }
 
+    public NativeByteBuffer(ByteBuffer buf) {
+        buffer = buf;
+    }
+
     public int position() {
         return buffer.position();
     }
