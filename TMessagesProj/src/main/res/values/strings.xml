@@ -3429,12 +3429,12 @@
     <string name="AccDescrVideoCompressLow">Smaller size</string>
     <string name="AccDescrVideoCompressHigh">Higher quality</string>
     <!--date formatters-->
-    <string name="formatterStats12H">MMM dd yyyy, h:mm a</string>
-    <string name="formatterStats24H">MMM dd yyyy, HH:mm</string>
-    <string name="formatterBannedUntil12H">MMM dd yyyy, h:mm a</string>
-    <string name="formatterBannedUntil24H">MMM dd yyyy, HH:mm</string>
-    <string name="formatterBannedUntilThisYear12H">MMM dd, h:mm a</string>
-    <string name="formatterBannedUntilThisYear24H">MMM dd, HH:mm</string>
+    <string name="formatterStats12H">MMM dd yyyy, h:mm:ss a</string>
+    <string name="formatterStats24H">MMM dd yyyy, HH:mm:ss</string>
+    <string name="formatterBannedUntil12H">MMM dd yyyy, h:mm:ss a</string>
+    <string name="formatterBannedUntil24H">MMM dd yyyy, HH:mm:ss</string>
+    <string name="formatterBannedUntilThisYear12H">MMM dd, h:mm:ss a</string>
+    <string name="formatterBannedUntilThisYear24H">MMM dd, HH:mm:ss</string>
     <string name="formatterMonthYear2">LLLL yyyy</string>
     <string name="formatterMonthName">LLLL</string>
     <string name="formatterMonth">MMM dd</string>
@@ -3443,15 +3443,15 @@
     <string name="chatDate">MMMM d</string>
     <string name="chatFullDate">MMMM d, yyyy</string>
     <string name="formatterWeek">EEE</string>
-    <string name="formatterDay24H">HH:mm</string>
-    <string name="formatterDay12H">h:mm a</string>
+    <string name="formatterDay24H">HH:mm:ss</string>
+    <string name="formatterDay12H">h:mm:ss a</string>
     <string name="formatDateAtTime">%1$s at %2$s</string>
     <string name="formatDateSchedule">MMM d</string>
     <string name="formatDateScheduleYear">MMM d yyyy</string>
-    <string name="SendTodayAt">\'Send today at\' HH:mm</string>
-    <string name="SendDayAt">\'Send on\' MMM d \'at\' HH:mm</string>
-    <string name="SendDayYearAt">\'Send on\' MMM d yyyy \'at\' HH:mm</string>
-    <string name="RemindTodayAt">\'Remind today at\' HH:mm</string>
-    <string name="RemindDayAt">\'Remind on\' MMM d \'at\' HH:mm</string>
-    <string name="RemindDayYearAt">\'Remind on\' MMM d yyyy \'at\' HH:mm</string>
+    <string name="SendTodayAt">\'Send today at\' HH:mm:ss</string>
+    <string name="SendDayAt">\'Send on\' MMM d \'at\' HH:mm:ss</string>
+    <string name="SendDayYearAt">\'Send on\' MMM d yyyy \'at\' HH:mm:ss</string>
+    <string name="RemindTodayAt">\'Remind today at\' HH:mm:ss</string>
+    <string name="RemindDayAt">\'Remind on\' MMM d \'at\' HH:mm:ss</string>
+    <string name="RemindDayYearAt">\'Remind on\' MMM d yyyy \'at\' HH:mm:ss</string>
 </resources>
