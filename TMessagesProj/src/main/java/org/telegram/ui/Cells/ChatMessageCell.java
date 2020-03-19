@@ -7761,6 +7761,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         } else {
             signString = null;
         }
+        if (messageObject.isDeleted()) {
+            if (signString == null) {
+                signString = LocaleController.getString("DeletedMessage", R.string.DeletedMessage);
+            } else {
+                signString = LocaleController.getString("DeletedMessage", R.string.DeletedMessage) + " " + signString.toString();
+            }
+        }
         String timeString;
         TLRPC.User author = null;
         if (currentMessageObject.isFromUser()) {

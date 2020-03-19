@@ -1861,6 +1861,10 @@ public class MessageObject {
         return false;
     }
 
+    public boolean isDeleted() {
+        return messageOwner.is_deleted;
+    }
+
     public boolean isPollClosed() {
         if (type != TYPE_POLL) {
             return false;

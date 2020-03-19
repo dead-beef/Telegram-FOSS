@@ -40376,6 +40376,7 @@ public class TLRPC {
         public TLRPC.Message replyMessage; //custom
 		public int reqId; //custom
         public int realId; //custom
+        public boolean is_deleted = false; //custom
 
 
         @Override
