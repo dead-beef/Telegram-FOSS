@@ -53,6 +53,10 @@ public class FileLog {
         if (initied) {
             return;
         }
+        if (!BuildVars.LOG_FILES_ENABLED) {
+            initied = true;
+            return;
+        }
         dateFormat = FastDateFormat.getInstance("dd_MM_yyyy_HH_mm_ss", Locale.US);
         try {
             File sdCard = ApplicationLoader.applicationContext.getExternalFilesDir(null);
@@ -124,8 +128,8 @@ public class FileLog {
         if (!BuildVars.LOGS_ENABLED) {
             return;
         }
-        ensureInitied();
         Log.e(tag, message, exception);
+        ensureInitied();
         if (getInstance().streamWriter != null) {
             getInstance().logQueue.postRunnable(() -> {
                 try {
@@ -143,8 +147,8 @@ public class FileLog {
         if (!BuildVars.LOGS_ENABLED) {
             return;
         }
-        ensureInitied();
         Log.e(tag, message);
+        ensureInitied();
         if (getInstance().streamWriter != null) {
             getInstance().logQueue.postRunnable(() -> {
                 try {
@@ -161,8 +165,9 @@ public class FileLog {
         if (!BuildVars.LOGS_ENABLED) {
             return;
         }
-        ensureInitied();
+        Log.e(tag, e.toString(), e);
         e.printStackTrace();
+        ensureInitied();
         if (getInstance().streamWriter != null) {
             getInstance().logQueue.postRunnable(() -> {
                 try {
@@ -185,8 +190,8 @@ public class FileLog {
         if (!BuildVars.LOGS_ENABLED) {
             return;
         }
-        ensureInitied();
         Log.d(tag, message);
+        ensureInitied();
         if (getInstance().streamWriter != null) {
             getInstance().logQueue.postRunnable(() -> {
                 try {
@@ -203,8 +208,8 @@ public class FileLog {
         if (!BuildVars.LOGS_ENABLED) {
             return;
         }
-        ensureInitied();
         Log.w(tag, message);
+        ensureInitied();
         if (getInstance().streamWriter != null) {
             getInstance().logQueue.postRunnable(() -> {
                 try {
