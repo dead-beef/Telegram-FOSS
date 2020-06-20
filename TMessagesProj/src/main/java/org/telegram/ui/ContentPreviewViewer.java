@@ -83,12 +83,16 @@ public class ContentPreviewViewer {
             return true;
         }
 
-        default void sendGif(Object gif, boolean notify, int scheduleDate) {
+        default void sendGif(Object gif, Object parent, boolean notify, int scheduleDate) {
 
         }
 
         default void gifAddedOrDeleted() {
 
+        }
+
+        default boolean needMenu() {
+            return true;
         }
     }
 
@@ -112,6 +116,8 @@ public class ContentPreviewViewer {
     private Runnable openPreviewRunnable;
     private BottomSheet visibleDialog;
     private ContentPreviewViewerDelegate delegate;
+
+    private boolean isRecentSticker;
 
     private WindowInsets lastInsets;
 
@@ -164,6 +170,11 @@ public class ContentPreviewViewer {
                     icons.add(inFavs ? R.drawable.outline_unfave : R.drawable.outline_fave);
                     actions.add(2);
                 }
+                if (isRecentSticker) {
+                    items.add(LocaleController.getString("DeleteFromRecent", R.string.DeleteFromRecent));
+                    icons.add(R.drawable.msg_delete);
+                    actions.add(4);
+                }
                 if (items.isEmpty()) {
                     return;
                 }
@@ -190,6 +201,8 @@ public class ContentPreviewViewer {
                         Object parent = parentObject;
                         ContentPreviewViewerDelegate stickerPreviewViewerDelegate = delegate;
                         AlertsCreator.createScheduleDatePickerDialog(parentActivity, stickerPreviewViewerDelegate.getDialogId(), (notify, scheduleDate) -> stickerPreviewViewerDelegate.sendSticker(sticker, parent, notify, scheduleDate));
+                    } else if (actions.get(which) == 4) {
+                        MediaDataController.getInstance(currentAccount).addRecentSticker(MediaDataController.TYPE_IMAGE, parentObject, currentDocument, (int) (System.currentTimeMillis() / 1000), true);
                     }
                 });
                 builder.setDimBehind(false);
@@ -259,7 +272,7 @@ public class ContentPreviewViewer {
                         return;
                     }
                     if (actions.get(which) == 0) {
-                        delegate.sendGif(currentDocument != null ? currentDocument : inlineResult, true, 0);
+                        delegate.sendGif(currentDocument != null ? currentDocument : inlineResult, parentObject, true, 0);
                     } else if (actions.get(which) == 1) {
                         MediaDataController.getInstance(currentAccount).removeRecentGif(currentDocument);
                         delegate.gifAddedOrDeleted();
@@ -272,7 +285,7 @@ public class ContentPreviewViewer {
                         TLRPC.BotInlineResult result = inlineResult;
                         Object parent = parentObject;
                         ContentPreviewViewerDelegate stickerPreviewViewerDelegate = delegate;
-                        AlertsCreator.createScheduleDatePickerDialog(parentActivity, stickerPreviewViewerDelegate.getDialogId(), (notify, scheduleDate) -> stickerPreviewViewerDelegate.sendGif(document != null ? document : result, notify, scheduleDate));
+                        AlertsCreator.createScheduleDatePickerDialog(parentActivity, stickerPreviewViewerDelegate.getDialogId(), (notify, scheduleDate) -> stickerPreviewViewerDelegate.sendGif(document != null ? document : result, parent, notify, scheduleDate));
                     }
                 });
                 visibleDialog.setDimBehind(false);
@@ -444,7 +457,7 @@ public class ContentPreviewViewer {
                                 clearsInputField = stickerCell.isClearsInputField();
                             } else if (currentPreviewCell instanceof ContextLinkCell) {
                                 ContextLinkCell contextLinkCell = (ContextLinkCell) currentPreviewCell;
-                                open(contextLinkCell.getDocument(), contextLinkCell.getBotInlineResult(), contentType, false, null);
+                                open(contextLinkCell.getDocument(), contextLinkCell.getBotInlineResult(), contentType, false, contextLinkCell.getInlineBot());
                                 if (contentType != CONTENT_TYPE_GIF) {
                                     contextLinkCell.setScaled(true);
                                 }
@@ -541,7 +554,7 @@ public class ContentPreviewViewer {
                         clearsInputField = stickerCell.isClearsInputField();
                     } else if (currentPreviewCell instanceof ContextLinkCell) {
                         ContextLinkCell contextLinkCell = (ContextLinkCell) currentPreviewCell;
-                        open(contextLinkCell.getDocument(), contextLinkCell.getBotInlineResult(), contentTypeFinal, false, null);
+                        open(contextLinkCell.getDocument(), contextLinkCell.getBotInlineResult(), contentTypeFinal, false, contextLinkCell.getInlineBot());
                         if (contentTypeFinal != CONTENT_TYPE_GIF) {
                             contextLinkCell.setScaled(true);
                         }
@@ -614,6 +627,7 @@ public class ContentPreviewViewer {
         if (parentActivity == null || windowView == null) {
             return;
         }
+        isRecentSticker = isRecent;
         stickerEmojiLayout = null;
         if (contentType == CONTENT_TYPE_STICKER) {
             if (document == null) {
@@ -632,7 +646,7 @@ public class ContentPreviewViewer {
                     break;
                 }
             }
-            if (newSet != null) {
+            if (newSet != null && (delegate == null || delegate.needMenu())) {
                 try {
                     if (visibleDialog != null) {
                         visibleDialog.setOnDismissListener(null);
@@ -646,7 +660,6 @@ public class ContentPreviewViewer {
                 AndroidUtilities.runOnUIThread(showSheetRunnable, 1300);
             }
             currentStickerSet = newSet;
-            parentObject = parent;
             TLRPC.PhotoSize thumb = FileLoader.getClosestPhotoSizeWithSize(document.thumbs, 90);
             centerImage.setImage(ImageLocation.getForDocument(document), null, ImageLocation.getForDocument(thumb, document), null, "webp", currentStickerSet, 1);
             for (int a = 0; a < document.attributes.size(); a++) {
@@ -662,12 +675,23 @@ public class ContentPreviewViewer {
         } else {
             if (document != null) {
                 TLRPC.PhotoSize thumb = FileLoader.getClosestPhotoSizeWithSize(document.thumbs, 90);
-                centerImage.setImage(ImageLocation.getForDocument(document), null, ImageLocation.getForDocument(thumb, document), "90_90_b", document.size, null, "gif" + document, 0);
+                TLRPC.TL_videoSize videoSize = MessageObject.getDocumentVideoThumb(document);
+                ImageLocation location = ImageLocation.getForDocument(document);
+                location.imageType = FileLoader.IMAGE_TYPE_ANIMATION;
+                if (videoSize != null) {
+                    centerImage.setImage(location, null, ImageLocation.getForDocument(videoSize, document), null, ImageLocation.getForDocument(thumb, document), "90_90_b", null, document.size, null, "gif" + document, 0);
+                } else {
+                    centerImage.setImage(location, null, ImageLocation.getForDocument(thumb, document), "90_90_b", document.size, null, "gif" + document, 0);
+                }
             } else if (botInlineResult != null) {
                 if (botInlineResult.content == null) {
                     return;
                 }
-                centerImage.setImage(ImageLocation.getForWebFile(WebFile.createWithWebDocument(botInlineResult.content)), null, ImageLocation.getForWebFile(WebFile.createWithWebDocument(botInlineResult.thumb)), "90_90_b", botInlineResult.content.size, null, "gif" + botInlineResult, 1);
+                if (botInlineResult.thumb instanceof TLRPC.TL_webDocument && "video/mp4".equals(botInlineResult.thumb.mime_type)) {
+                    centerImage.setImage(ImageLocation.getForWebFile(WebFile.createWithWebDocument(botInlineResult.content)), null, ImageLocation.getForWebFile(WebFile.createWithWebDocument(botInlineResult.thumb)), null, ImageLocation.getForWebFile(WebFile.createWithWebDocument(botInlineResult.thumb)), "90_90_b", null, botInlineResult.content.size, null, "gif" + botInlineResult, 1);
+                } else {
+                    centerImage.setImage(ImageLocation.getForWebFile(WebFile.createWithWebDocument(botInlineResult.content)), null, ImageLocation.getForWebFile(WebFile.createWithWebDocument(botInlineResult.thumb)), "90_90_b", botInlineResult.content.size, null, "gif" + botInlineResult, 1);
+                }
             } else {
                 return;
             }
@@ -678,6 +702,7 @@ public class ContentPreviewViewer {
         currentContentType = contentType;
         currentDocument = document;
         inlineResult = botInlineResult;
+        parentObject = parent;
         containerView.invalidate();
 
         if (!isVisible) {
@@ -700,7 +725,7 @@ public class ContentPreviewViewer {
             currentMoveY = 0;
             moveY = 0;
             lastUpdateTime = System.currentTimeMillis();
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 4);
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 8);
         }
     }
 
@@ -728,7 +753,7 @@ public class ContentPreviewViewer {
         currentStickerSet = null;
         delegate = null;
         isVisible = false;
-        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.startAllHeavyOperations, 4);
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.startAllHeavyOperations, 8);
     }
 
     public void destroy() {
@@ -757,7 +782,7 @@ public class ContentPreviewViewer {
             FileLog.e(e);
         }
         Instance = null;
-        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.startAllHeavyOperations, 4);
+        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.startAllHeavyOperations, 8);
     }
 
     private float rubberYPoisition(float offset, float factor) {

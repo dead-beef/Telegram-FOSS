@@ -21,6 +21,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import androidx.annotation.Keep;
+
 import android.view.DisplayCutout;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -72,6 +73,7 @@ public class DrawerLayoutContainer extends FrameLayout {
     private float scrimOpacity;
     private Drawable shadowLeft;
     private boolean allowOpenDrawer;
+    private boolean allowOpenDrawerBySwipe = true;
 
     private float drawerPosition;
     private boolean drawerOpened;
@@ -174,6 +176,7 @@ public class DrawerLayoutContainer extends FrameLayout {
         setScrimOpacity(drawerPosition / (float) drawerLayout.getMeasuredWidth());
     }
 
+    @Keep
     public float getDrawerPosition() {
         return drawerPosition;
     }
@@ -281,6 +284,10 @@ public class DrawerLayoutContainer extends FrameLayout {
         }
     }
 
+    public void setAllowOpenDrawerBySwipe(boolean value) {
+        allowOpenDrawerBySwipe = value;
+    }
+
     private void prepareForDrawerOpen(MotionEvent ev) {
         maybeStartTracking = false;
         startedTracking = true;
@@ -310,7 +317,7 @@ public class DrawerLayoutContainer extends FrameLayout {
                 return true;
             }
 
-            if (allowOpenDrawer && parentActionBarLayout.fragmentsStack.size() == 1) {
+            if ((allowOpenDrawerBySwipe || drawerOpened) && allowOpenDrawer && parentActionBarLayout.fragmentsStack.size() == 1) {
                 if (ev != null && (ev.getAction() == MotionEvent.ACTION_DOWN || ev.getAction() == MotionEvent.ACTION_MOVE) && !startedTracking && !maybeStartTracking) {
                     parentActionBarLayout.getHitRect(rect);
                     startedTrackingX = (int) ev.getX();
@@ -359,6 +366,15 @@ public class DrawerLayoutContainer extends FrameLayout {
                             closeDrawer(drawerOpened && Math.abs(velX) >= 3500);
                         }
                     }
+                    startedTracking = false;
+                    maybeStartTracking = false;
+                    if (velocityTracker != null) {
+                        velocityTracker.recycle();
+                        velocityTracker = null;
+                    }
+                }
+            } else {
+                if (ev == null || ev != null && ev.getPointerId(0) == startedTrackingPointerId && (ev.getAction() == MotionEvent.ACTION_CANCEL || ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_POINTER_UP)) {
                     startedTracking = false;
                     maybeStartTracking = false;
                     if (velocityTracker != null) {
@@ -453,6 +469,11 @@ public class DrawerLayoutContainer extends FrameLayout {
                 }
             }
             inLayout = false;
+        } else {
+            int newSize = heightSize - AndroidUtilities.statusBarHeight;
+            if (newSize > 0 && newSize < 4096) {
+                AndroidUtilities.displaySize.y = newSize;
+            }
         }
 
         final boolean applyInsets = lastInsets != null && Build.VERSION.SDK_INT >= 21;

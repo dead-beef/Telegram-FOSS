@@ -41,6 +41,8 @@ import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
 
+import java.util.ArrayList;
+
 public class BaseFragment {
 
     private boolean isFinished;
@@ -110,6 +112,10 @@ public class BaseFragment {
                 actionBar.setOccupyStatusBar(Build.VERSION.SDK_INT >= 21);
             }
         }
+    }
+
+    protected boolean hideKeyboardOnShow() {
+        return true;
     }
 
     protected void clearViews() {
@@ -237,7 +243,8 @@ public class BaseFragment {
     }
 
     public void onFragmentDestroy() {
-        ConnectionsManager.getInstance(currentAccount).cancelRequestsForGuid(classGuid);
+        getConnectionsManager().cancelRequestsForGuid(classGuid);
+        getMessagesStorage().cancelTasksForGuid(classGuid);
         isFinished = true;
         if (actionBar != null) {
             actionBar.setEnabled(false);
@@ -372,6 +379,10 @@ public class BaseFragment {
         }
     }
 
+    protected void onTransitionAnimationProgress(boolean isOpen, float progress) {
+
+    }
+
     protected void onTransitionAnimationStart(boolean isOpen, boolean backward) {
 
     }
@@ -477,8 +488,8 @@ public class BaseFragment {
         return false;
     }
 
-    public ThemeDescription[] getThemeDescriptions() {
-        return new ThemeDescription[0];
+    public ArrayList<ThemeDescription> getThemeDescriptions() {
+        return new ArrayList<>();
     }
 
     public AccountInstance getAccountInstance() {
@@ -501,7 +512,7 @@ public class BaseFragment {
         return getAccountInstance().getConnectionsManager();
     }
 
-    protected LocationController getLocationController() {
+    public LocationController getLocationController() {
         return getAccountInstance().getLocationController();
     }
 
@@ -509,7 +520,7 @@ public class BaseFragment {
         return getAccountInstance().getNotificationsController();
     }
 
-    protected MessagesStorage getMessagesStorage() {
+    public MessagesStorage getMessagesStorage() {
         return getAccountInstance().getMessagesStorage();
     }
 

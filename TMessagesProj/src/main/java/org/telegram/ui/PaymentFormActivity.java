@@ -14,10 +14,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Dialog;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -46,7 +43,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.WindowManager;
-import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.EditorInfo;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
@@ -66,10 +62,7 @@ import com.stripe.android.exception.APIConnectionException;
 import com.stripe.android.exception.APIException;
 import com.stripe.android.model.Card;
 import com.stripe.android.model.Token;
-import com.stripe.android.net.StripeApiHandler;
-import com.stripe.android.net.TokenParser;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AndroidUtilities;
@@ -277,7 +270,7 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
 
         @Override
         public void onClick(View widget) {
-            presentFragment(new TwoStepVerificationActivity(0));
+            presentFragment(new TwoStepVerificationSetupActivity(TwoStepVerificationSetupActivity.TYPE_INTRO, currentPassword));
         }
     }
 
@@ -818,7 +811,7 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
                             }
                             phoneField.setText(builder);
                             if (start >= 0) {
-                                phoneField.setSelection(start <= phoneField.length() ? start : phoneField.length());
+                                phoneField.setSelection(Math.min(start, phoneField.length()));
                             }
                             phoneField.onTextChange();
                             ignoreOnPhoneChange = false;
@@ -1324,7 +1317,7 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
                                     editable.replace(0, editable.length(), builder);
                                 }
                                 if (start >= 0) {
-                                    phoneField.setSelection(start <= phoneField.length() ? start : phoneField.length());
+                                    phoneField.setSelection(Math.min(start, phoneField.length()));
                                 }
                                 ignoreOnCardChange = false;
                             }
@@ -1440,7 +1433,7 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
 
                                 phoneField.setText(builder);
                                 if (start >= 0) {
-                                    phoneField.setSelection(start <= phoneField.length() ? start : phoneField.length());
+                                    phoneField.setSelection(Math.min(start, phoneField.length()));
                                 }
                                 ignoreOnCardChange = false;
                             }
@@ -2217,7 +2210,7 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
 
     @Override
     public boolean onFragmentCreate() {
-        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didSetTwoStepPassword);
+        NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.twoStepPasswordChanged);
         NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.didRemoveTwoStepPassword);
         if (currentStep != 4) {
             NotificationCenter.getInstance(currentAccount).addObserver(this, NotificationCenter.paymentFinished);
@@ -2230,7 +2223,7 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
         if (delegate != null) {
             delegate.onFragmentDestroyed();
         }
-        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.didSetTwoStepPassword);
+        NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.twoStepPasswordChanged);
         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.didRemoveTwoStepPassword);
         if (currentStep != 4) {
             NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.paymentFinished);
@@ -2285,7 +2278,7 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
 
     @Override
     public void didReceivedNotification(int id, int account, Object... args) {
-        if (id == NotificationCenter.didSetTwoStepPassword) {
+        if (id == NotificationCenter.twoStepPasswordChanged) {
             paymentForm.password_missing = false;
             paymentForm.can_save_credentials = true;
             updateSavePaymentField();
@@ -2299,7 +2292,7 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
     }
     /*
     private void showAndroidPay() {
-        if (getParentActivity() == null || androidPayContainer == null) {
+        /*if (getParentActivity() == null || androidPayContainer == null) {
             return;
         }
 
@@ -2367,11 +2360,11 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
         animatorSet.setInterpolator(new DecelerateInterpolator());
         animatorSet.setDuration(180);
         animatorSet.start();
-    }
+    }*/
 
     @Override
     public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
-        if (requestCode == LOAD_MASKED_WALLET_REQUEST_CODE) {
+        /*if (requestCode == LOAD_MASKED_WALLET_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
                 showEditDoneProgress(true, true);
                 setDonePressed(true);
@@ -2438,9 +2431,8 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
                 showEditDoneProgress(true, false);
                 setDonePressed(false);
             }
-        }
+        }*/
     }
-    */
 
     private void goToNextStep() {
         if (currentStep == 0) {
@@ -3285,8 +3277,9 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
     }
 
     @Override
-    public ThemeDescription[] getThemeDescriptions() {
+    public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> arrayList = new ArrayList<>();
+
         arrayList.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
         arrayList.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_actionBarDefault));
         arrayList.add(new ThemeDescription(scrollView, ThemeDescription.FLAG_LISTGLOWCOLOR, null, null, null, null, Theme.key_actionBarDefault));
@@ -3383,6 +3376,6 @@ public class PaymentFormActivity extends BaseFragment implements NotificationCen
         arrayList.add(new ThemeDescription(bottomLayout, ThemeDescription.FLAG_SELECTORWHITE, null, null, null, null, Theme.key_windowBackgroundWhite));
         arrayList.add(new ThemeDescription(bottomLayout, ThemeDescription.FLAG_SELECTORWHITE, null, null, null, null, Theme.key_listSelector));
 
-        return arrayList.toArray(new ThemeDescription[0]);
+        return arrayList;
     }
 }

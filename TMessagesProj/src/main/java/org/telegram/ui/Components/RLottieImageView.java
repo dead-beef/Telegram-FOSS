@@ -41,7 +41,11 @@ public class RLottieImageView extends ImageView {
     }
 
     public void setAnimation(int resId, int w, int h, int[] colorReplacement) {
-        drawable = new RLottieDrawable(resId, "" + resId, AndroidUtilities.dp(w), AndroidUtilities.dp(h), false, colorReplacement);
+        setAnimation(new RLottieDrawable(resId, "" + resId, AndroidUtilities.dp(w), AndroidUtilities.dp(h), false, colorReplacement));
+    }
+
+    public void setAnimation(RLottieDrawable lottieDrawable) {
+        drawable = lottieDrawable;
         if (autoRepeat) {
             drawable.setAutoRepeat(1);
         }
@@ -60,8 +64,11 @@ public class RLottieImageView extends ImageView {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         attachedToWindow = true;
-        if (playing && drawable != null) {
-            drawable.start();
+        if (drawable != null) {
+            drawable.setCallback(this);
+            if (playing) {
+                drawable.start();
+            }
         }
     }
 
@@ -72,6 +79,10 @@ public class RLottieImageView extends ImageView {
         if (drawable != null) {
             drawable.stop();
         }
+    }
+
+    public boolean isPlaying() {
+        return drawable != null && drawable.isRunning();
     }
 
     public void setAutoRepeat(boolean repeat) {
@@ -95,5 +106,21 @@ public class RLottieImageView extends ImageView {
         } else {
             startOnAttach = true;
         }
+    }
+
+    public void stopAnimation() {
+        if (drawable == null) {
+            return;
+        }
+        playing = false;
+        if (attachedToWindow) {
+            drawable.stop();
+        } else {
+            startOnAttach = false;
+        }
+    }
+
+    public RLottieDrawable getAnimatedDrawable() {
+        return drawable;
     }
 }

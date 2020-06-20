@@ -17,7 +17,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaRecorder;
-import android.media.ThumbnailUtils;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Base64;
@@ -31,6 +30,7 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.SerializedData;
@@ -621,7 +621,13 @@ public class CameraController implements MediaRecorder.OnInfoListener {
                         Size pictureSize;
                         pictureSize = new Size(16, 9);
                         pictureSize = CameraController.chooseOptimalSize(info.getPictureSizes(), 720, 480, pictureSize);
-                        recorder.setVideoEncodingBitRate(900000 * 2);
+                        int bitrate;
+                        if (Math.min(pictureSize.mHeight,pictureSize.mWidth) >= 720) {
+                            bitrate = 3500000;
+                        } else {
+                            bitrate = 1800000;
+                        }
+                        recorder.setVideoEncodingBitRate(bitrate);
                         recorder.setVideoSize(pictureSize.getWidth(), pictureSize.getHeight());
                         recorder.setOnInfoListener(CameraController.this);
                         recorder.prepare();
@@ -665,12 +671,12 @@ public class CameraController implements MediaRecorder.OnInfoListener {
                 FileLog.e(e);
             }
         }
-        final Bitmap bitmap = ThumbnailUtils.createVideoThumbnail(recordedFile, MediaStore.Video.Thumbnails.MINI_KIND);
+        final Bitmap bitmap = SendMessagesHelper.createVideoThumbnail(recordedFile, MediaStore.Video.Thumbnails.MINI_KIND);
         String fileName = Integer.MIN_VALUE + "_" + SharedConfig.getLastLocalId() + ".jpg";
         final File cacheFile = new File(FileLoader.getDirectory(FileLoader.MEDIA_DIR_CACHE), fileName);
         try {
             FileOutputStream stream = new FileOutputStream(cacheFile);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 87, stream);
         } catch (Throwable e) {
             FileLog.e(e);
         }

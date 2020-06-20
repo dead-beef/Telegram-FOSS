@@ -568,7 +568,7 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
                         int viewHeight = getMeasuredHeight();
                         float scaleX = (float) getMeasuredWidth() / (float) background.getIntrinsicWidth();
                         float scaleY = (float) (viewHeight) / (float) background.getIntrinsicHeight();
-                        float scale = scaleX < scaleY ? scaleY : scaleX;
+                        float scale = Math.max(scaleX, scaleY);
                         int width = (int) Math.ceil(background.getIntrinsicWidth() * scale * parallaxScale);
                         int height = (int) Math.ceil(background.getIntrinsicHeight() * scale * parallaxScale);
                         int x = (getMeasuredWidth() - width) / 2;
@@ -610,7 +610,7 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
 
         page2.addView(backgroundImage, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.LEFT | Gravity.TOP, 0, 0, 0, 48));
         if (screenType == SCREEN_TYPE_CHANGE_BACKGROUND) {
-            backgroundImage.getImageReceiver().setDelegate((imageReceiver, set, thumb) -> {
+            backgroundImage.getImageReceiver().setDelegate((imageReceiver, set, thumb, memCache) -> {
                 if (!(currentWallpaper instanceof WallpapersListActivity.ColorWallpaper)) {
                     Drawable dr = imageReceiver.getDrawable();
                     if (set && dr != null) {
@@ -656,6 +656,7 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
                 dropDownContainer.addSubItem(2, LocaleController.getString("ColorPickerBackground", R.string.ColorPickerBackground));
                 dropDownContainer.addSubItem(3, LocaleController.getString("ColorPickerMyMessages", R.string.ColorPickerMyMessages));
                 dropDownContainer.setAllowCloseAnimation(false);
+                dropDownContainer.setForceSmoothKeyboard(true);
                 actionBar2.addView(dropDownContainer, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, AndroidUtilities.isTablet() ? 64 : 56, 0, 40, 0));
                 dropDownContainer.setOnClickListener(view -> dropDownContainer.toggleSubMenu());
 
@@ -1629,6 +1630,9 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
             saveButtonsContainer.addView(doneButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.RIGHT));
             doneButton.setOnClickListener(v -> {
                 Theme.ThemeInfo previousTheme = Theme.getPreviousTheme();
+                if (previousTheme == null) {
+                    return;
+                }
                 Theme.ThemeAccent previousAccent;
                 if (previousTheme != null && previousTheme.prevAccentId >= 0) {
                     previousAccent = previousTheme.themeAccentsMap.get(previousTheme.prevAccentId);
@@ -2716,7 +2720,7 @@ public class ThemePreviewActivity extends BaseFragment implements DownloadContro
         }
     }
 
-    public class DialogsAdapter extends RecyclerListView.SelectionAdapter {
+    public static class DialogsAdapter extends RecyclerListView.SelectionAdapter {
 
         private Context mContext;
 

@@ -1,3 +1,31 @@
+### v6.2.0
+- New Media Editor
+  - Enhance video quality, add drawings, text, stickers.
+  - Zoom in on media for high-precision drawing.
+  - Put animated stickers on photos or videos.
+- New GIF Panel
+  - Find GIFs quickly in emoji-based sections.
+  - GIFs load faster.
+- Improved Interfaces
+  - Send, edit, delete messages with new animations.
+  - Updated Video Player, Storage Usage settings, 2-Step Verification flow.
+
+### v6.1.0
+Telegram has reached 400 million active users!
+- Fully redesigned attachment menu with animated icons.
+- 20,000+ stickers from professional artists now available in the updated sticker panel.
+- Added explanations and timers for quiz questions.
+- €400,000 contest for educational tests. Use @QuizBot to create an educational quiz to participate.
+
+### v6.0.1
+Chat Folders and More
+- Organize chats into Chat Folders if you have too many chats.
+- Create custom folders with flexible settings, or use default recommendations.
+- Pin an unlimited number of chats in each folder.
+- Swipe between folders to easily access all of your chats.
+- View detailed statistics about the growth of your channels and the performance of their posts.
+- Send :dice: to any chat to try your luck and get a random number from the animated dice.
+
 ### v5.15.0
 New Profiles, Fast Media Viewer and People Nearby 2.0
 - Access shared media directly from the redesigned profile pages.

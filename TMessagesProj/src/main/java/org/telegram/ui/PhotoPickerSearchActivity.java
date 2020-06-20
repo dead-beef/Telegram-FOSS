@@ -38,7 +38,6 @@ import org.telegram.ui.Components.ScrollSlidingTextTabStrip;
 import org.telegram.ui.Components.SizeNotifierFrameLayout;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -46,7 +45,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class PhotoPickerSearchActivity extends BaseFragment {
 
-    private class ViewPage extends FrameLayout {
+    private static class ViewPage extends FrameLayout {
         private BaseFragment parentFragment;
         private FrameLayout fragmentView;
         private ActionBar actionBar;
@@ -122,7 +121,6 @@ public class PhotoPickerSearchActivity extends BaseFragment {
                 imagesSearch.getActionBar().openSearchField("", false);
                 gifsSearch.getActionBar().openSearchField("", false);
                 searchItem.getSearchField().requestFocus();
-
             }
 
             @Override
@@ -242,7 +240,7 @@ public class PhotoPickerSearchActivity extends BaseFragment {
                 setMeasuredDimension(widthSize, heightSize);
 
                 measureChildWithMargins(actionBar, widthMeasureSpec, 0, heightMeasureSpec, 0);
-                int keyboardSize = SharedConfig.smoothKeyboard ? 0 : getKeyboardHeight();
+                int keyboardSize = SharedConfig.smoothKeyboard ? 0 : measureKeyboardHeight();
                 if (keyboardSize <= AndroidUtilities.dp(20)) {
                     if (!AndroidUtilities.isInMultiwindow) {
                         heightSize -= commentTextView.getEmojiPadding();
@@ -292,7 +290,7 @@ public class PhotoPickerSearchActivity extends BaseFragment {
             protected void onLayout(boolean changed, int l, int t, int r, int b) {
                 final int count = getChildCount();
 
-                int keyboardSize = SharedConfig.smoothKeyboard ? 0 : getKeyboardHeight();
+                int keyboardSize = SharedConfig.smoothKeyboard ? 0 : measureKeyboardHeight();
                 int paddingBottom = keyboardSize <= AndroidUtilities.dp(20) && !AndroidUtilities.isInMultiwindow && !AndroidUtilities.isTablet() ? commentTextView.getEmojiPadding() : 0;
                 setBottomClip(paddingBottom);
 
@@ -412,60 +410,64 @@ public class PhotoPickerSearchActivity extends BaseFragment {
             @Override
             public boolean onTouchEvent(MotionEvent ev) {
                 if (!parentLayout.checkTransitionAnimation() && !checkTabsAnimationInProgress()) {
+                    if (ev != null) {
+                        if (velocityTracker == null) {
+                            velocityTracker = VelocityTracker.obtain();
+                        }
+                        velocityTracker.addMovement(ev);
+                    }
                     if (ev != null && ev.getAction() == MotionEvent.ACTION_DOWN && !startedTracking && !maybeStartTracking) {
                         startedTrackingPointerId = ev.getPointerId(0);
                         maybeStartTracking = true;
                         startedTrackingX = (int) ev.getX();
                         startedTrackingY = (int) ev.getY();
-                        if (velocityTracker != null) {
-                            velocityTracker.clear();
-                        }
+                        velocityTracker.clear();
                     } else if (ev != null && ev.getAction() == MotionEvent.ACTION_MOVE && ev.getPointerId(0) == startedTrackingPointerId) {
-                        if (velocityTracker == null) {
-                            velocityTracker = VelocityTracker.obtain();
-                        }
                         int dx = (int) (ev.getX() - startedTrackingX);
                         int dy = Math.abs((int) ev.getY() - startedTrackingY);
-                        velocityTracker.addMovement(ev);
                         if (startedTracking && (animatingForward && dx > 0 || !animatingForward && dx < 0)) {
                             if (!prepareForMoving(ev, dx < 0)) {
                                 maybeStartTracking = true;
                                 startedTracking = false;
+                                viewPages[0].setTranslationX(0);
+                                viewPages[1].setTranslationX(animatingForward ? viewPages[0].getMeasuredWidth() : -viewPages[0].getMeasuredWidth());
+                                scrollSlidingTextTabStrip.selectTabWithId(viewPages[1].selectedType, 0);
                             }
                         }
                         if (maybeStartTracking && !startedTracking) {
                             float touchSlop = AndroidUtilities.getPixelsInCM(0.3f, true);
-                            if (Math.abs(dx) >= touchSlop && Math.abs(dx) / 3 > dy) {
+                            if (Math.abs(dx) >= touchSlop && Math.abs(dx) > dy) {
                                 prepareForMoving(ev, dx < 0);
                             }
                         } else if (startedTracking) {
+                            viewPages[0].setTranslationX(dx);
                             if (animatingForward) {
-                                viewPages[0].setTranslationX(dx);
                                 viewPages[1].setTranslationX(viewPages[0].getMeasuredWidth() + dx);
                             } else {
-                                viewPages[0].setTranslationX(dx);
                                 viewPages[1].setTranslationX(dx - viewPages[0].getMeasuredWidth());
                             }
                             float scrollProgress = Math.abs(dx) / (float) viewPages[0].getMeasuredWidth();
                             scrollSlidingTextTabStrip.selectTabWithId(viewPages[1].selectedType, scrollProgress);
                         }
-                    } else if (ev != null && ev.getPointerId(0) == startedTrackingPointerId && (ev.getAction() == MotionEvent.ACTION_CANCEL || ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_POINTER_UP)) {
-                        if (velocityTracker == null) {
-                            velocityTracker = VelocityTracker.obtain();
-                        }
+                    } else if (ev == null || ev.getPointerId(0) == startedTrackingPointerId && (ev.getAction() == MotionEvent.ACTION_CANCEL || ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_POINTER_UP)) {
                         velocityTracker.computeCurrentVelocity(1000, maximumVelocity);
-                        if (!startedTracking) {
-                            float velX = velocityTracker.getXVelocity();
-                            float velY = velocityTracker.getYVelocity();
-                            if (Math.abs(velX) >= 3000 && Math.abs(velX) > Math.abs(velY)) {
-                                prepareForMoving(ev, velX < 0);
+                        float velX;
+                        float velY;
+                        if (ev != null && ev.getAction() != MotionEvent.ACTION_CANCEL) {
+                            velX = velocityTracker.getXVelocity();
+                            velY = velocityTracker.getYVelocity();
+                            if (!startedTracking) {
+                                if (Math.abs(velX) >= 3000 && Math.abs(velX) > Math.abs(velY)) {
+                                    prepareForMoving(ev, velX < 0);
+                                }
                             }
+                        } else {
+                            velX = 0;
+                            velY = 0;
                         }
                         if (startedTracking) {
                             float x = viewPages[0].getX();
                             tabsAnimation = new AnimatorSet();
-                            float velX = velocityTracker.getXVelocity();
-                            float velY = velocityTracker.getYVelocity();
                             backAnimation = Math.abs(x) < viewPages[0].getMeasuredWidth() / 3.0f && (Math.abs(velX) < 3500 || Math.abs(velX) < Math.abs(velY));
                             float distToMove;
                             float dx;
@@ -536,9 +538,9 @@ public class PhotoPickerSearchActivity extends BaseFragment {
                             });
                             tabsAnimation.start();
                             tabsAnimationInProgress = true;
+                            startedTracking = false;
                         } else {
                             maybeStartTracking = false;
-                            startedTracking = false;
                             actionBar.setEnabled(true);
                             scrollSlidingTextTabStrip.setEnabled(true);
                         }
@@ -602,6 +604,7 @@ public class PhotoPickerSearchActivity extends BaseFragment {
                 viewPages[a].listView = gifsSearch.getListView();
                 viewPages[a].setVisibility(View.GONE);
             }
+            viewPages[a].listView.setScrollingTouchSlop(RecyclerView.TOUCH_SLOP_PAGING);
             viewPages[a].fragmentView = (FrameLayout) viewPages[a].parentFragment.getFragmentView();
             viewPages[a].listView.setClipToPadding(false);
             viewPages[a].actionBar = viewPages[a].parentFragment.getActionBar();
@@ -796,7 +799,7 @@ public class PhotoPickerSearchActivity extends BaseFragment {
     }
 
     @Override
-    public ThemeDescription[] getThemeDescriptions() {
+    public ArrayList<ThemeDescription> getThemeDescriptions() {
         ArrayList<ThemeDescription> arrayList = new ArrayList<>();
 
         arrayList.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_dialogBackground));
@@ -813,9 +816,9 @@ public class PhotoPickerSearchActivity extends BaseFragment {
         arrayList.add(new ThemeDescription(scrollSlidingTextTabStrip.getTabsContainer(), ThemeDescription.FLAG_BACKGROUNDFILTER | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, new Class[]{TextView.class}, null, null, null, Theme.key_dialogButtonSelector));
         arrayList.add(new ThemeDescription(null, 0, null, null, new Drawable[]{scrollSlidingTextTabStrip.getSelectorDrawable()}, null, Theme.key_chat_attachActiveTab));
 
-        Collections.addAll(arrayList, imagesSearch.getThemeDescriptions());
-        Collections.addAll(arrayList, gifsSearch.getThemeDescriptions());
+        arrayList.addAll(imagesSearch.getThemeDescriptions());
+        arrayList.addAll(gifsSearch.getThemeDescriptions());
 
-        return arrayList.toArray(new ThemeDescription[0]);
+        return arrayList;
     }
 }

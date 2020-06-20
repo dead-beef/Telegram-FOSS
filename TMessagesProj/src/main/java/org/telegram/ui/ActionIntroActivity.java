@@ -423,6 +423,7 @@ public class ActionIntroActivity extends BaseFragment implements LocationControl
             descriptionLayout = new LinearLayout(context);
             descriptionLayout.setOrientation(LinearLayout.VERTICAL);
             descriptionLayout.setPadding(AndroidUtilities.dp(24), 0, AndroidUtilities.dp(24), 0);
+            descriptionLayout.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
             viewGroup.addView(descriptionLayout);
 
             for (int a = 0; a < 3; a++) {
@@ -432,15 +433,14 @@ public class ActionIntroActivity extends BaseFragment implements LocationControl
 
                 desctiptionLines[a * 2] = new TextView(context);
                 desctiptionLines[a * 2].setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                desctiptionLines[a * 2].setGravity(Gravity.LEFT);
+                desctiptionLines[a * 2].setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
                 desctiptionLines[a * 2].setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-                desctiptionLines[a * 2].setText(String.format("%d.", a + 1));
+                desctiptionLines[a * 2].setText(String.format(LocaleController.isRTL ? ".%d" : "%d.", a + 1));
                 desctiptionLines[a * 2].setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
-                linearLayout.addView(desctiptionLines[a * 2], LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 4, 0));
 
                 desctiptionLines[a * 2 + 1] = new TextView(context);
                 desctiptionLines[a * 2 + 1].setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                desctiptionLines[a * 2 + 1].setGravity(Gravity.LEFT);
+                desctiptionLines[a * 2 + 1].setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
                 desctiptionLines[a * 2 + 1].setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
                 if (a == 0) {
                     desctiptionLines[a * 2 + 1].setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText));
@@ -461,7 +461,14 @@ public class ActionIntroActivity extends BaseFragment implements LocationControl
                 } else if (a == 2) {
                     desctiptionLines[a * 2 + 1].setText(LocaleController.getString("AuthAnotherClientInfo3", R.string.AuthAnotherClientInfo3));
                 }
-                linearLayout.addView(desctiptionLines[a * 2 + 1], LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
+                if (LocaleController.isRTL) {
+                    linearLayout.setGravity(Gravity.RIGHT);
+                    linearLayout.addView(desctiptionLines[a * 2 + 1], LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1.0f));
+                    linearLayout.addView(desctiptionLines[a * 2], LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 4, 0, 0, 0));
+                } else {
+                    linearLayout.addView(desctiptionLines[a * 2], LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 4, 0));
+                    linearLayout.addView(desctiptionLines[a * 2 + 1], LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
+                }
             }
 
             descriptionText.setVisibility(View.GONE);
@@ -741,7 +748,7 @@ public class ActionIntroActivity extends BaseFragment implements LocationControl
             } else {
                 AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
                 builder.setTitle(LocaleController.getString("AppName", R.string.AppName));
-                builder.setMessage(LocaleController.getString("WalletPermissionNoCamera", R.string.WalletPermissionNoCamera));
+                builder.setMessage(LocaleController.getString("QRCodePermissionNoCamera", R.string.QRCodePermissionNoCamera));
                 builder.setNegativeButton(LocaleController.getString("PermissionOpenSettings", R.string.PermissionOpenSettings), (dialog, which) -> {
                     try {
                         Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -772,34 +779,35 @@ public class ActionIntroActivity extends BaseFragment implements LocationControl
     }
 
     @Override
-    public ThemeDescription[] getThemeDescriptions() {
+    public ArrayList<ThemeDescription> getThemeDescriptions() {
+        ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
 
         ThemeDescription.ThemeDescriptionDelegate delegate = this::updateColors;
 
-        return new ThemeDescription[]{
-                new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, delegate, Theme.key_windowBackgroundWhite),
+        themeDescriptions.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, delegate, Theme.key_windowBackgroundWhite));
 
-                new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundWhite),
-                new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteGrayText2),
-                new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarWhiteSelector),
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundWhite));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteGrayText2));
+        themeDescriptions.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarWhiteSelector));
 
-                new ThemeDescription(titleTextView, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, delegate, Theme.key_windowBackgroundWhiteBlackText),
-                new ThemeDescription(subtitleTextView, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText),
-                new ThemeDescription(descriptionText, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteGrayText6),
-                new ThemeDescription(buttonTextView, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_featuredStickers_buttonText),
-                new ThemeDescription(buttonTextView, ThemeDescription.FLAG_USEBACKGROUNDDRAWABLE, null, null, null, delegate, Theme.key_featuredStickers_addButton),
-                new ThemeDescription(buttonTextView, ThemeDescription.FLAG_USEBACKGROUNDDRAWABLE | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, null, null, null, null, Theme.key_featuredStickers_addButtonPressed),
+        themeDescriptions.add(new ThemeDescription(titleTextView, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, delegate, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(subtitleTextView, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(descriptionText, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteGrayText6));
+        themeDescriptions.add(new ThemeDescription(buttonTextView, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_featuredStickers_buttonText));
+        themeDescriptions.add(new ThemeDescription(buttonTextView, ThemeDescription.FLAG_USEBACKGROUNDDRAWABLE, null, null, null, delegate, Theme.key_featuredStickers_addButton));
+        themeDescriptions.add(new ThemeDescription(buttonTextView, ThemeDescription.FLAG_USEBACKGROUNDDRAWABLE | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, null, null, null, null, Theme.key_featuredStickers_addButtonPressed));
 
-                new ThemeDescription(desctiptionLines[0], ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText),
-                new ThemeDescription(desctiptionLines[1], ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText),
-                new ThemeDescription(desctiptionLines[1], ThemeDescription.FLAG_LINKCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteLinkText),
-                new ThemeDescription(desctiptionLines[2], ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText),
-                new ThemeDescription(desctiptionLines[3], ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText),
-                new ThemeDescription(desctiptionLines[4], ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText),
-                new ThemeDescription(desctiptionLines[5], ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText),
+        themeDescriptions.add(new ThemeDescription(desctiptionLines[0], ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(desctiptionLines[1], ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(desctiptionLines[1], ThemeDescription.FLAG_LINKCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteLinkText));
+        themeDescriptions.add(new ThemeDescription(desctiptionLines[2], ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(desctiptionLines[3], ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(desctiptionLines[4], ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
+        themeDescriptions.add(new ThemeDescription(desctiptionLines[5], ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_windowBackgroundWhiteBlackText));
 
-                new ThemeDescription(null, ThemeDescription.FLAG_TEXTCOLOR, null, null, new Drawable[]{drawable1}, null, Theme.key_changephoneinfo_image),
-                new ThemeDescription(null, ThemeDescription.FLAG_TEXTCOLOR, null, null, new Drawable[]{drawable2}, null, Theme.key_changephoneinfo_image2),
-        };
+        themeDescriptions.add(new ThemeDescription(null, ThemeDescription.FLAG_TEXTCOLOR, null, null, new Drawable[]{drawable1}, null, Theme.key_changephoneinfo_image));
+        themeDescriptions.add(new ThemeDescription(null, ThemeDescription.FLAG_TEXTCOLOR, null, null, new Drawable[]{drawable2}, null, Theme.key_changephoneinfo_image2));
+
+        return themeDescriptions;
     }
 }

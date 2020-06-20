@@ -118,6 +118,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
         } catch (Exception e) {
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.e("write int32 error");
+                FileLog.e(e);
             }
         }
     }
@@ -132,6 +133,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
         } catch (Exception e) {
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.e("write int64 error");
+                FileLog.e(e);
             }
         }
     }
@@ -158,6 +160,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
         } catch (Exception e) {
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.e("write raw error");
+                FileLog.e(e);
             }
         }
     }
@@ -172,6 +175,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
         } catch (Exception e) {
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.e("write raw error");
+                FileLog.e(e);
             }
         }
     }
@@ -190,6 +194,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
         } catch (Exception e) {
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.e("write byte error");
+                FileLog.e(e);
             }
         }
     }
@@ -200,6 +205,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
         } catch (Exception e) {
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.e("write string error");
+                FileLog.e(e);
             }
         }
     }
@@ -239,6 +245,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
         } catch (Exception e) {
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.e("write byte array error");
+                FileLog.e(e);
             }
         }
     }
@@ -278,6 +285,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
         } catch (Exception e) {
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.e("write byte array error");
+                FileLog.e(e);
             }
         }
     }
@@ -288,6 +296,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
         } catch (Exception e) {
             if (BuildVars.LOGS_ENABLED) {
                 FileLog.e("write double error");
+                FileLog.e(e);
             }
         }
     }
@@ -375,6 +384,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
             } else {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.e("read int32 error");
+                    FileLog.e(e);
                 }
             }
         }
@@ -407,6 +417,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
             } else {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.e("read int64 error");
+                    FileLog.e(e);
                 }
             }
         }
@@ -422,6 +433,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
             } else {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.e("read raw error");
+                    FileLog.e(e);
                 }
             }
         }
@@ -436,6 +448,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
             } else {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.e("read raw error");
+                    FileLog.e(e);
                 }
             }
         }
@@ -470,6 +483,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
             } else {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.e("read string error");
+                    FileLog.e(e);
                 }
             }
             position(startReadPosition);
@@ -499,6 +513,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
             } else {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.e("read byte array error");
+                    FileLog.e(e);
                 }
             }
         }
@@ -531,6 +546,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
             } else {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.e("read byte array error");
+                    FileLog.e(e);
                 }
             }
         }
@@ -546,6 +562,7 @@ public class NativeByteBuffer extends AbstractSerializedData {
             } else {
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.e("read double error");
+                    FileLog.e(e);
                 }
             }
         }
