@@ -1,45 +1,10 @@
-[![Releases](https://img.shields.io/github/release/Telegram-FOSS-Team/Telegram-FOSS.svg)](https://github.com/Telegram-FOSS-Team/Telegram-FOSS/releases/latest)
-[![Discussions](https://img.shields.io/badge/Offtopics-Telegram-blue.svg)](https://t.me/tfossofftop)
-
-[![Donate](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/Telegram-FOSS/) or <img src="https://en.bitcoin.it/w/images/en/c/cb/BC_Logotype.png" alt="Bitcoin" height="25px" /> `1McafEgMvqAVujNLtcJumZHxp2UfaNByqs`
-
 # Telegram-FOSS
 
 [Telegram](https://telegram.org) is a messaging app with a focus on speed and security. It’s superfast, simple and free.
 
-This is an unofficial, FOSS-friendly fork of the original [Telegram App for Android](https://github.com/DrKLO/Telegram).
+This is an unofficial, FOSS-friendly fork of [an unofficial, FOSS-friendly fork](https://github.com/Telegram-FOSS-Team/Telegram-FOSS) of the original [Telegram App for Android](https://github.com/DrKLO/Telegram).
 
-This version of Telegram is available on FDroid:
-
-[<img src="https://f-droid.org/badge/get-it-on.png"
-      alt="Get it on F-Droid"
-      height="80">](https://f-droid.org/app/org.telegram.messenger)
-
-## Current Maintainers
-
-- [thermatk](https://github.com/thermatk)
-- [Bubu](https://github.com/Bubu)
-- you? :)
-
-## Contributors
-
-- [slp](https://github.com/slp)
-- [Sudokamikaze](https://github.com/Sudokamikaze)
-- [l2dy](https://github.com/l2dy)
-- [maximgrafin](https://github.com/maximgrafin)
-- [vn971](https://github.com/vn971)
-- [theel0ja](https://github.com/theel0ja)
-- [AnXh3L0](https://github.com/AnXh3L0)
-- [noplanman](https://github.com/noplanman)
-- [vk496](https://github.com/vk496)
-
-## Discussion
-
-Join the [Telegram-FOSS Offtopics group](https://t.me/tfossofftop)
-
-You can also join `#telegram-foss:matrix.org` via [matrix](https://matrix.to/#/#telegram-foss:matrix.org) or `#telegram-foss` on freenode.
-
-## Changes:
+## Changes
 
 *Replacement of non-FOSS, untrustworthy or suspicious binaries or source code:*
 - Do location sharing with OpenStreetMap(osmdroid) instead of Google Maps
@@ -126,7 +91,3 @@ Consider using a Linux VM or dual booting.**
 The project can be built with Android Studio or from the command line:
 
 `./build.sh`
-
-# DIGITAL RESISTANCE
-
-![DIGITALRESISTANCE](/DigitalResistance.jpg?raw=true "DIGITALRESISTANCE")
