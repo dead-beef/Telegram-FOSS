@@ -28,6 +28,7 @@ This is an unofficial, FOSS-friendly fork of [an unofficial, FOSS-friendly fork]
 - Force static map previews from Telegram
 - Added the ability to export the database
 - Hide messages from blocked users
+- Added the ability to download chats
 
 ## Versioning
 
