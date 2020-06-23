@@ -211,6 +211,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -268,6 +269,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private StickersAdapter stickersAdapter;
     private FrameLayout stickersPanel;
     private ActionBarMenuSubItem muteItem;
+    private ActionBarMenuSubItem downloadItem;
     private FrameLayout pagedownButton;
     private ImageView pagedownButtonImage;
     private boolean pagedownButtonShowedByScroll;
@@ -435,6 +437,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private Runnable waitingForCharaterEnterRunnable;
 
     private boolean clearingHistory;
+
+    private boolean downloading = false;
+    private int lastDownloadedMessageId = 0;
+
+    private Random rand = new Random();
 
     private boolean openAnimationEnded;
     private long openAnimationStartTime;
@@ -930,6 +937,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private final static int text_underline = 56;
 
     private final static int search = 40;
+
+    private final static int download = 255;
 
     private final static int id_chat_compose_panel = 1000;
 
@@ -1632,6 +1641,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         chatActivityEnterView.getEditField().setSelectionOverride(editTextStart, editTextEnd);
                         chatActivityEnterView.getEditField().makeSelectedRegular();
                     }
+                } else if (id == download) {
+                    toggleDownload();
                 }
             }
         });
@@ -1862,6 +1873,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 headerItem.addSubItem(bot_help, R.drawable.menu_help, LocaleController.getString("BotHelp", R.string.BotHelp));
                 updateBotButtons();
             }
+            downloadItem = headerItem.addSubItem(download, R.drawable.msg_download, LocaleController.getString("DownloadChat", R.string.DownloadChat));
         }
 
         updateTitle();
@@ -8775,6 +8787,50 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         needSelectFromMessageId = select;
     }
 
+    private void toggleDownload() {
+        if (!downloading) {
+            startDownload();
+        } else {
+            stopDownload();
+        }
+    }
+
+    private void startDownload() {
+        if (downloading) {
+            return;
+        }
+        downloading = true;
+        lastDownloadedMessageId = 0;
+        updateTitleIcons();
+        continueDownload();
+    }
+
+    private void continueDownload() {
+        final MessagesStorage messagesStorage = getMessagesStorage();
+        final long delay = lastDownloadedMessageId == 0 ? 0 : 1000 + rand.nextInt(1000);
+        messagesStorage.getStorageQueue().postRunnable(() -> {
+            final int prevMessageId = lastDownloadedMessageId;
+            if (prevMessageId > 0) {
+                lastDownloadedMessageId = messagesStorage.getNextHole(dialog_id, prevMessageId);
+            } else {
+                lastDownloadedMessageId = messagesStorage.getFirstHole(dialog_id);
+            }
+            AndroidUtilities.runOnUIThread(() -> {
+                if (lastDownloadedMessageId <= 0) {
+                    stopDownload();
+                } else {
+                    scrollToMessageId(lastDownloadedMessageId, prevMessageId, false, 0, true);
+                }
+            });
+        }, delay);
+    }
+
+    private void stopDownload() {
+        downloading = false;
+        lastDownloadedMessageId = 0;
+        updateTitleIcons();
+    }
+
     private void updatePagedownButtonVisibility(boolean animated) {
         if (pagedownButton == null) {
             return;
@@ -9562,6 +9618,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 muteItem.setTextAndIcon(LocaleController.getString("UnmuteNotifications", R.string.UnmuteNotifications), R.drawable.msg_unmute);
             } else {
                 muteItem.setTextAndIcon(LocaleController.getString("MuteNotifications", R.string.MuteNotifications), R.drawable.msg_mute);
+            }
+        }
+        if (downloadItem != null) {
+            if (downloading) {
+                downloadItem.setTextAndIcon(LocaleController.getString("DownloadChatStop", R.string.DownloadChatStop), R.drawable.msg_cancel);
+            }
+            else {
+                downloadItem.setTextAndIcon(LocaleController.getString("DownloadChat", R.string.DownloadChat), R.drawable.msg_download);
             }
         }
     }
@@ -10505,6 +10569,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                         }
                     }
                 }
+            }
+            if (downloading) {
+                continueDownload();
             }
         } else if (id == NotificationCenter.emojiDidLoad) {
             if (chatListView != null) {

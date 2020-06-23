@@ -990,6 +990,8 @@
     <string name="PsaHideChatAlertTitle">Hide chat</string>
     <string name="PsaHideChatAlertText">Are you sure you want to hide the selected chat?</string>
     <string name="PsaHide">Hide</string>
+    <string name="DownloadChat">Download chat</string>
+    <string name="DownloadChatStop">Stop downloading chat</string>
     <!--notification-->
     <string name="MessageLifetimeChanged">%1$s set the self-destruct timer to %2$s</string>
     <string name="MessageLifetimeChangedOutgoing">You set the self-destruct timer to %1$s</string>

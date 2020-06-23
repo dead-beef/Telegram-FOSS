@@ -9847,6 +9847,42 @@ public class MessagesStorage extends BaseController {
         }
     }
 
+    public int getFirstHole(long did) {
+        int res = getNextHole(did, 1);
+        if (res <= 0) {
+            res = 1;
+        }
+        return res;
+    }
+
+    public int getNextHole(long did, int mid) {
+        int res = -1;
+        try {
+            final SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US, "SELECT start FROM messages_holes WHERE uid = %d AND start >= %d ORDER BY start LIMIT 1", did, mid));
+            if (cursor.next()) {
+                res = cursor.intValue(0);
+            }
+            cursor.dispose();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return res;
+    }
+
+    public int getPrevHole(long did, int mid) {
+        int res = -1;
+        try {
+            final SQLiteCursor cursor = database.queryFinalized(String.format(Locale.US, "SELECT end FROM messages_holes WHERE uid = %d AND end <= %d ORDER BY end DESC LIMIT 1", did, mid));
+            if (cursor.next()) {
+                res = cursor.intValue(0);
+            }
+            cursor.dispose();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return res;
+    }
+
     private void putDialogsInternal(final TLRPC.messages_Dialogs dialogs, int check) {
         try {
             database.beginTransaction();
