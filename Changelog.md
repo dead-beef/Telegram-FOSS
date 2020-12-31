@@ -1,3 +1,42 @@
+### v.7.2.1
+Pinned Messages 2.0, Improved Live Locations, Playlists and More
+- Pin several messages in any chat
+- View pinned messages on a separate page
+- Get alerts when friends sharing their live location are close and see which way they are looking
+- Send several music tracks as a playlist
+- View detailed statistics about the performance of individual posts in your channels
+- Tap the brush button when viewing a photo to edit it and send it back
+- View the complete list of changes in-app or on our blog
+
+
+### v.7.1.3
+Search Filters, Anonymous Admins, Channel Comments and More
+- Search messages by type, date or source using the new filters in Global Search.
+- Toggle "Remain Anonymous" in Admin Rights to hide them in the list of members and allow them to post on behalf of the group.
+- Comment on posts in channels that have a discussion group.
+- Hold on profile pictures in group chats to enlarge them.
+- Enjoy new animations throughout the app.
+- View the complete list of changes in-app or on our blog.
+
+### v.7.0.0
+Yes, Video Calls (alpha version)
+
+Telegram turns 7 years old! Thank you for your support over all these years. Because of you, this year Telegram reached 400 million active users and is now one of the top 10 most downloaded apps in the world.
+
+To celebrate our 7th anniversary together, we are launching the first version of the feature you’ve been asking for – ultra secure and fast Video Calls.
+- **Telegram FOSS:**
+  - Fix for FFmpeg eating CPU (#436), thanks to [kdrag0n](https://github.com/kdrag0n)
+
+### v6.3.0
+Telegram is now among the top 10 most downloaded and most used apps in the world.
+- Share unlimited files of any type, now up to 2 GB each.
+- Set a Profile Video instead of a static picture.
+- Tap ‘Set as Main’ to change back to a previous profile photo or video.
+- Get greeting sticker suggestions and see distance to chat partner in People Nearby.
+- Crop and rotate videos in the media editor.
+- Enjoy a fully revamped music player.
+- View the complete list of changes log in-app or on our blog.
+
 ### v6.2.0
 - New Media Editor
   - Enhance video quality, add drawings, text, stickers.
